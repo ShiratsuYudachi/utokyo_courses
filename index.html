@@ -387,7 +387,7 @@
                     <div class="col-md-3">
                         <div class="d-flex">
                             <button class="btn filter-btn w-100 me-2" id="filter-btn">
-                                <i class="bi bi-funnel me-2"></i>应用过滤器
+                                <i class="bi bi-funnel me-2"></i>搜索
                             </button>
                             <div class="form-check form-switch d-flex align-items-center">
                                 <input class="form-check-input" type="checkbox" id="semantic-search-toggle">
@@ -413,6 +413,12 @@
                     <div id="search-loading-subtext" class="search-loading-subtext">
                         初次使用语义搜索时，需要加载和处理向量数据，可能需要几十秒至几分钟。
                         后续搜索将会更快。
+                    </div>
+                    <div id="search-loading-subtext" class="search-loading-subtext">
+                        推荐使用电脑访问，手机端网页可能会被杀掉
+                    </div>
+                    <div id="search-loading-subtext" class="search-loading-subtext">
+                        等我有钱有时间了就做个后端.jpg
                     </div>
                 </div>
             </div>
@@ -800,8 +806,10 @@
             if (coursesPerPage === -1) {
                 pagination.innerHTML = `
                     <div class="text-center mt-3">
-                        <span class="text-muted">显示全部 ${filteredCourses.length} 条结果</span>
+                        <span class="text-muted">找不到更多课程？试试在搜索框启用语义搜索！</span>
+                        <span class="text-muted">这可以按照实际语义来模糊搜索某一个方向的所有课程</span>
                     </div>
+
                 `;
                 return;
             }
