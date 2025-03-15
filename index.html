@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -297,6 +297,38 @@
                 margin-left: 0;
             }
         }
+        
+        /* 语言切换按钮样式 */
+        .language-selector {
+            margin-left: 15px;
+        }
+        
+        .language-btn {
+            color: rgba(255, 255, 255, 0.8);
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        
+        .language-btn:hover, .language-btn.active {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .github-link {
+            color: var(--accent-color);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        .github-link:hover {
+            color: white;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -304,7 +336,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
         <div class="container">
             <a class="navbar-brand" href="#">
-                <i class="bi bi-book me-2"></i>东京大学课程浏览器
+                <i class="bi bi-book me-2"></i><span class="lang-zh">东京大学课程浏览器</span><span class="lang-ja d-none">東京大学コース検索</span><span class="lang-en d-none">UTokyo Course Browser</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -312,13 +344,18 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" href="#"><i class="bi bi-house-door me-1"></i>首页</a>
+                        <a class="nav-link active" href="#"><i class="bi bi-house-door me-1"></i><span class="lang-zh">首页</span><span class="lang-ja d-none">ホーム</span><span class="lang-en d-none">Home</span></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#stats"><i class="bi bi-bar-chart me-1"></i>统计</a>
+                        <a class="nav-link" href="#stats"><i class="bi bi-bar-chart me-1"></i><span class="lang-zh">统计</span><span class="lang-ja d-none">統計</span><span class="lang-en d-none">Stats</span></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#courses"><i class="bi bi-journal-text me-1"></i>课程</a>
+                        <a class="nav-link" href="#courses"><i class="bi bi-journal-text me-1"></i><span class="lang-zh">课程</span><span class="lang-ja d-none">コース</span><span class="lang-en d-none">Courses</span></a>
+                    </li>
+                    <li class="nav-item language-selector d-flex">
+                        <button class="language-btn mx-1" data-lang="zh">中</button>
+                        <button class="language-btn mx-1" data-lang="ja">日</button>
+                        <button class="language-btn active mx-1" data-lang="en">En</button>
                     </li>
                 </ul>
             </div>
@@ -332,9 +369,29 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body text-center">
-                        <h1 class="display-4">欢迎使用东京大学课程浏览器</h1>
-                        <p class="lead">感谢Claude 3.7 Sonnet</p>
-                        <p class="lead">消灭人类暴政，世界属于AI</p>
+                        <h1 class="display-4">
+                            <span class="lang-zh">欢迎使用东京大学课程浏览器</span>
+                            <span class="lang-ja d-none">東京大学コース検索へようこそ</span>
+                            <span class="lang-en d-none">Welcome to UTokyo Course Browser</span>
+                        </h1>
+                        <p class="lead">
+                            <span class="lang-zh">感谢Claude 3.7 Sonnet</span>
+                            <span class="lang-ja d-none">Claude 3.7 Sonnetに感謝</span>
+                            <span class="lang-en d-none">Thanks to Claude 3.7 Sonnet</span>
+                        </p>
+                        <p class="lead">
+                            <span class="lang-zh">消灭人类暴政，世界属于AI</span>
+                            <span class="lang-ja d-none">人間の暴政を終わらせ、世界はAIのものに</span>
+                            <span class="lang-en d-none">End human tyranny, the world belongs to AI</span>
+                        </p>
+                        <p>
+                            <a href="https://github.com/ShiratsuYudachi/utokyo_courses" target="_blank" class="github-link">
+                                <i class="bi bi-github me-1"></i>
+                                <span class="lang-zh">觉得有用可以考虑给个Star，改善建议欢迎提Issue</span>
+                                <span class="lang-ja d-none">Starがほしいです！改善提案もIssueへどうぞ！</span>
+                                <span class="lang-en d-none">If you find it useful, maybe give this repo a star? Suggestions welcome via Issues</span>
+                            </a>
+                        </p>
                     </div>
                 </div>
             </div>
@@ -342,20 +399,36 @@
 
         <!-- 统计信息 -->
         <section id="stats" class="mb-5">
-            <h2 class="mb-4"><i class="bi bi-bar-chart me-2"></i>课程统计</h2>
+            <h2 class="mb-4"><i class="bi bi-bar-chart me-2"></i>
+                <span class="lang-zh">课程统计</span>
+                <span class="lang-ja d-none">コース統計</span>
+                <span class="lang-en d-none">Course Statistics</span>
+            </h2>
             <div class="stats-container">
                 <div class="row">
                     <div class="col-md-4 stats-item">
                         <div class="stats-number" id="total-courses">0</div>
-                        <div class="stats-label">总课程数</div>
+                        <div class="stats-label">
+                            <span class="lang-zh">总课程数</span>
+                            <span class="lang-ja d-none">総コース数</span>
+                            <span class="lang-en d-none">Total Courses</span>
+                        </div>
                     </div>
                     <div class="col-md-4 stats-item">
                         <div class="stats-number" id="unique-courses">0</div>
-                        <div class="stats-label">去重后课程数</div>
+                        <div class="stats-label">
+                            <span class="lang-zh">去重后课程数</span>
+                            <span class="lang-ja d-none">重複除外後のコース数</span>
+                            <span class="lang-en d-none">Unique Courses</span>
+                        </div>
                     </div>
                     <div class="col-md-4 stats-item">
                         <div class="stats-number" id="departments-count">0</div>
-                        <div class="stats-label">院系数量</div>
+                        <div class="stats-label">
+                            <span class="lang-zh">院系数量</span>
+                            <span class="lang-ja d-none">学部数</span>
+                            <span class="lang-en d-none">Departments</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -363,47 +436,80 @@
 
         <!-- 搜索和过滤 -->
         <section id="search" class="mb-5">
-            <h2 class="mb-4"><i class="bi bi-search me-2"></i>搜索课程</h2>
+            <h2 class="mb-4"><i class="bi bi-search me-2"></i>
+                <span class="lang-zh">搜索课程</span>
+                <span class="lang-ja d-none">コース検索</span>
+                <span class="lang-en d-none">Search Courses</span>
+            </h2>
             <div class="search-container">
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <input type="text" class="form-control" id="search-input" placeholder="搜索课程名称、教师或代码...">
+                        <input type="text" class="form-control" id="search-input" placeholder="">
                     </div>
                     <div class="col-md-3">
                         <select class="form-select" id="term-filter">
-                            <option value="">所有学期</option>
+                            <option value="" class="lang-zh">所有学期</option>
+                            <option value="" class="lang-ja d-none">すべての学期</option>
+                            <option value="" class="lang-en d-none">All Terms</option>
                         </select>
                     </div>
                     <div class="col-md-3">
                         <select class="form-select" id="level-filter">
-                            <option value="">所有级别</option>
+                            <option value="" class="lang-zh">所有级别</option>
+                            <option value="" class="lang-ja d-none">すべてのレベル</option>
+                            <option value="" class="lang-en d-none">All Levels</option>
                         </select>
                     </div>
                     <div class="col-md-3">
                         <select class="form-select" id="page-size-selector">
-                            <option value="10">每页 10 条</option>
-                            <option value="20">每页 20 条</option>
-                            <option value="50">每页 50 条</option>
-                            <option value="100">每页 100 条</option>
-                            <option value="200">每页 200 条</option>
-                            <option value="500">每页 500 条</option>
-                            <option value="1000">每页 1000 条</option>
-                            <option value="-1" selected>显示全部</option>
+                            <option value="10" class="lang-zh">每页 10 条</option>
+                            <option value="10" class="lang-ja d-none">10件/ページ</option>
+                            <option value="10" class="lang-en d-none">10 per page</option>
+                            <option value="20" class="lang-zh">每页 20 条</option>
+                            <option value="20" class="lang-ja d-none">20件/ページ</option>
+                            <option value="20" class="lang-en d-none">20 per page</option>
+                            <option value="50" class="lang-zh">每页 50 条</option>
+                            <option value="50" class="lang-ja d-none">50件/ページ</option>
+                            <option value="50" class="lang-en d-none">50 per page</option>
+                            <option value="100" class="lang-zh">每页 100 条</option>
+                            <option value="100" class="lang-ja d-none">100件/ページ</option>
+                            <option value="100" class="lang-en d-none">100 per page</option>
+                            <option value="200" class="lang-zh">每页 200 条</option>
+                            <option value="200" class="lang-ja d-none">200件/ページ</option>
+                            <option value="200" class="lang-en d-none">200 per page</option>
+                            <option value="500" class="lang-zh">每页 500 条</option>
+                            <option value="500" class="lang-ja d-none">500件/ページ</option>
+                            <option value="500" class="lang-en d-none">500 per page</option>
+                            <option value="1000" class="lang-zh">每页 1000 条</option>
+                            <option value="1000" class="lang-ja d-none">1000件/ページ</option>
+                            <option value="1000" class="lang-en d-none">1000 per page</option>
+                            <option value="-1" selected class="lang-zh">显示全部</option>
+                            <option value="-1" selected class="lang-ja d-none">すべて表示</option>
+                            <option value="-1" selected class="lang-en d-none">Show All</option>
                         </select>
                     </div>
                     <div class="col-md-6">
                         <select class="form-select" id="department-filter">
-                            <option value="">所有院系</option>
+                            <option value="" class="lang-zh">所有院系</option>
+                            <option value="" class="lang-ja d-none">すべての学部</option>
+                            <option value="" class="lang-en d-none">All Departments</option>
                         </select>
                     </div>
                     <div class="col-md-3">
                         <div class="d-flex">
                             <button class="btn filter-btn w-100 me-2" id="filter-btn">
-                                <i class="bi bi-funnel me-2"></i>搜索
+                                <i class="bi bi-funnel me-2"></i>
+                                <span class="lang-zh">搜索</span>
+                                <span class="lang-ja d-none">検索</span>
+                                <span class="lang-en d-none">Search</span>
                             </button>
                             <div class="form-check form-switch d-flex align-items-center">
                                 <input class="form-check-input" type="checkbox" id="semantic-search-toggle">
-                                <label class="form-check-label ms-2" for="semantic-search-toggle">语义搜索</label>
+                                <label class="form-check-label ms-2" for="semantic-search-toggle">
+                                    <span class="lang-zh">语义搜索</span>
+                                    <span class="lang-ja d-none">意味検索</span>
+                                    <span class="lang-en d-none">Semantic Search</span>
+                                </label>
                             </div>
                         </div>
                     </div>
@@ -414,8 +520,14 @@
                         <div class="alert alert-warning py-2 mb-0" role="alert">
                             <small>
                                 <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                                请使用电脑端Chrome浏览器访问以使用语义搜索功能，手机端或其他浏览器访问可能会因资源占用过大杀掉页面。
-                                <span class="text-muted fst-italic">等我有钱有时间了就来做个后端.jpg</span>
+                                <span class="lang-zh">请使用电脑端Chrome浏览器访问以使用语义搜索功能，手机端或其他浏览器访问可能会因资源占用过大杀掉页面。</span>
+                                <span class="lang-ja d-none">意味検索機能を使用するには、PCのChromeブラウザをご利用ください。モバイル端末や他のブラウザでは、リソース使用量が多すぎてページがクラッシュする可能性があります。</span>
+                                <span class="lang-en d-none">Please use Chrome browser on desktop for semantic search. Mobile devices or other browsers may crash due to high resource usage.</span>
+                                <span class="text-muted fst-italic">
+                                    <span class="lang-zh">等我有钱有时间了就来做个后端.jpg</span>
+                                    <span class="lang-ja d-none">お金と時間ができたらバックエンドを作ります</span>
+                                    <span class="lang-en d-none">Will build a backend when I have money and time</span>
+                                </span>
                             </small>
                         </div>
                     </div>
@@ -425,18 +537,31 @@
 
         <!-- 课程列表 -->
         <section id="courses">
-            <h2 class="mb-4"><i class="bi bi-journal-text me-2"></i>课程列表</h2>
+            <h2 class="mb-4"><i class="bi bi-journal-text me-2"></i>
+                <span class="lang-zh">课程列表</span>
+                <span class="lang-ja d-none">コース一覧</span>
+                <span class="lang-en d-none">Course List</span>
+            </h2>
             
             <!-- 加载动画 -->
             <div id="loading" class="loading">
                 <div class="search-loading-container">
                     <div class="spinner-border" role="status">
-                        <span class="visually-hidden">加载中...</span>
+                        <span class="visually-hidden">
+                            <span class="lang-zh">加载中...</span>
+                            <span class="lang-ja d-none">読み込み中...</span>
+                            <span class="lang-en d-none">Loading...</span>
+                        </span>
                     </div>
-                    <div id="search-loading-text" class="search-loading-text">正在搜索课程...</div>
+                    <div id="search-loading-text" class="search-loading-text">
+                        <span class="lang-zh">正在搜索课程...</span>
+                        <span class="lang-ja d-none">コースを検索中...</span>
+                        <span class="lang-en d-none">Searching courses...</span>
+                    </div>
                     <div id="search-loading-subtext" class="search-loading-subtext">
-                        初次使用语义搜索时，需要加载和处理向量数据，可能需要几十秒至几分钟。
-                        后续搜索将会更快。
+                        <span class="lang-zh">初次使用语义搜索时，需要加载和处理向量数据，可能需要几十秒至几分钟。后续搜索将会更快。</span>
+                        <span class="lang-ja d-none">初めて意味検索を使用する場合、ベクトルデータの読み込みと処理に数十秒から数分かかることがあります。その後の検索はより速くなります。</span>
+                        <span class="lang-en d-none">First-time semantic search requires loading and processing vector data, which may take several seconds to minutes. Subsequent searches will be faster.</span>
                     </div>
                 </div>
             </div>
@@ -458,20 +583,36 @@
     <!-- 页脚 -->
     <footer class="text-center">
         <div class="container">
-            <p>© 2024 东京大学课程浏览器 | 数据来源于东京大学官方网站</p>
+            <p>
+                <span class="lang-zh">© 2024 东京大学课程浏览器 | 数据来源于东京大学官方网站</span>
+                <span class="lang-ja d-none">© 2024 東京大学コース検索 | データは東京大学公式サイトから取得</span>
+                <span class="lang-en d-none">© 2024 UTokyo Course Browser | Data sourced from the University of Tokyo official website</span>
+            </p>
         </div>
     </footer>
 
     <!-- 模型加载进度条 -->
     <div id="model-loading-container" class="model-loading-container" style="display: none;">
         <div class="model-loading-card">
-            <div class="model-loading-title">正在加载语义搜索模型</div>
+            <div class="model-loading-title">
+                <span class="lang-zh">正在加载语义搜索模型</span>
+                <span class="lang-ja d-none">意味検索モデルを読み込み中</span>
+                <span class="lang-en d-none">Loading semantic search model</span>
+            </div>
             <div class="progress model-loading-progress">
                 <div id="model-loading-progress-bar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
             </div>
-            <p id="model-loading-status" class="model-loading-status">准备中...</p>
+            <p id="model-loading-status" class="model-loading-status">
+                <span class="lang-zh">准备中...</span>
+                <span class="lang-ja d-none">準備中...</span>
+                <span class="lang-en d-none">Preparing...</span>
+            </p>
             <div class="text-end mt-3">
-                <button id="cancel-model-loading" class="btn btn-sm btn-outline-secondary">取消</button>
+                <button id="cancel-model-loading" class="btn btn-sm btn-outline-secondary">
+                    <span class="lang-zh">取消</span>
+                    <span class="lang-ja d-none">キャンセル</span>
+                    <span class="lang-en d-none">Cancel</span>
+                </button>
             </div>
         </div>
     </div>
@@ -491,10 +632,168 @@
         let courseVectors = {};
         let isModelLoading = false;
         let isModelLoaded = false;
+        let currentLanguage = 'en'; // 默认语言为英文
+        
+        // 语言文本映射
+        const languageTexts = {
+            'search_placeholder': {
+                'zh': '搜索课程名称、教师或代码...',
+                'ja': 'コース名、教師名、コードで検索...',
+                'en': 'Search by course name, instructor or code...'
+            },
+            'loading_model': {
+                'zh': '加载模型中...',
+                'ja': 'モデルを読み込み中...',
+                'en': 'Loading model...'
+            },
+            'downloading_model': {
+                'zh': '正在下载模型...',
+                'ja': 'モデルをダウンロード中...',
+                'en': 'Downloading model...'
+            },
+            'loading_model_text': {
+                'zh': '正在加载模型...',
+                'ja': 'モデルを読み込み中...',
+                'en': 'Loading model...'
+            },
+            'initializing_model': {
+                'zh': '正在初始化模型...',
+                'ja': 'モデルを初期化中...',
+                'en': 'Initializing model...'
+            },
+            'model_loaded': {
+                'zh': '模型加载完成！',
+                'ja': 'モデルの読み込みが完了しました！',
+                'en': 'Model loaded successfully!'
+            },
+            'loading_failed': {
+                'zh': '加载失败: ',
+                'ja': '読み込み失敗: ',
+                'en': 'Loading failed: '
+            },
+            'semantic_search_failed': {
+                'zh': '语义搜索 (加载失败)',
+                'ja': '意味検索 (読み込み失敗)',
+                'en': 'Semantic Search (loading failed)'
+            },
+            'searching_courses': {
+                'zh': '正在搜索课程...',
+                'ja': 'コースを検索中...',
+                'en': 'Searching courses...'
+            },
+            'preparing_model': {
+                'zh': '正在准备语义搜索模型...',
+                'ja': '意味検索モデルを準備中...',
+                'en': 'Preparing semantic search model...'
+            },
+            'calculating_similarity': {
+                'zh': '正在计算语义相似度...',
+                'ja': '意味的類似性を計算中...',
+                'en': 'Calculating semantic similarity...'
+            },
+            'generating_query_vector': {
+                'zh': '正在生成查询向量...',
+                'ja': '検索ベクトルを生成中...',
+                'en': 'Generating query vector...'
+            },
+            'generating_course_vectors': {
+                'zh': '正在生成课程向量（初次使用可能需要较长时间）...',
+                'ja': 'コースベクトルを生成中（初回使用は時間がかかる場合があります）...',
+                'en': 'Generating course vectors (may take longer for first use)...'
+            },
+            'calculating_sorting': {
+                'zh': '正在计算相似度并排序结果...',
+                'ja': '類似性を計算して結果を並べ替え中...',
+                'en': 'Calculating similarity and sorting results...'
+            },
+            'preparing_vectors': {
+                'zh': '正在准备处理 {0} 门课程的向量...',
+                'ja': '{0}件のコースのベクトルを準備中...',
+                'en': 'Preparing to process vectors for {0} courses...'
+            },
+            'processing_vectors': {
+                'zh': '正在处理课程向量 ({0}-{1}/{2})...',
+                'ja': 'コースベクトルを処理中 ({0}-{1}/{2})...',
+                'en': 'Processing course vectors ({0}-{1}/{2})...'
+            },
+            'vectors_processed': {
+                'zh': '课程向量处理完成，正在应用搜索...',
+                'ja': 'コースベクトル処理完了、検索を適用中...',
+                'en': 'Course vectors processed, applying search...'
+            },
+            'no_courses_found': {
+                'zh': '没有找到匹配的课程。请尝试不同的搜索条件，或考虑启用语义搜索功能。',
+                'ja': '一致するコースが見つかりませんでした。別の検索条件を試すか、意味検索機能の有効化を検討してください。',
+                'en': 'No matching courses found. Try different search criteria or consider enabling semantic search.'
+            },
+            'semantic_search_tip': {
+                'zh': '找不到更多课程？试试在搜索框启用语义搜索！这可以按照实际语义来模糊搜索某一个方向的所有课程',
+                'ja': 'もっとコースを見つけたいですか？検索ボックスで意味検索を有効にしてみてください！特定の方向のすべてのコースを意味的にあいまい検索できます',
+                'en': 'Can\'t find more courses? Try enabling semantic search in the search box! This allows fuzzy searching for all courses in a specific direction based on actual semantics'
+            },
+            'jump_to_page': {
+                'zh': '跳转到',
+                'ja': 'ページへ移動',
+                'en': 'Go to page'
+            },
+            'page': {
+                'zh': '页',
+                'ja': 'ページ',
+                'en': 'page'
+            },
+            'jump': {
+                'zh': '跳转',
+                'ja': '移動',
+                'en': 'Go'
+            },
+            'instructor': {
+                'zh': '教师',
+                'ja': '教師',
+                'en': 'Instructor'
+            },
+            'course_code': {
+                'zh': '课程代码',
+                'ja': 'コースコード',
+                'en': 'Course Code'
+            },
+            'department': {
+                'zh': '院系',
+                'ja': '学部',
+                'en': 'Department'
+            },
+            'major': {
+                'zh': '专业',
+                'ja': '専攻',
+                'en': 'Major'
+            },
+            'location': {
+                'zh': '地点',
+                'ja': '場所',
+                'en': 'Location'
+            },
+            'similarity': {
+                'zh': '相似度',
+                'ja': '類似度',
+                'en': 'Similarity'
+            },
+            'not_specified': {
+                'zh': '未指定',
+                'ja': '未指定',
+                'en': 'Not specified'
+            },
+            'unknown_course': {
+                'zh': '未知课程',
+                'ja': '不明なコース',
+                'en': 'Unknown Course'
+            }
+        };
         
         // 页面加载完成后执行
         document.addEventListener('DOMContentLoaded', async function() {
             try {
+                // 初始化语言切换
+                initializeLanguage();
+                
                 // 检测浏览器类型
                 checkBrowser();
                 
@@ -550,6 +849,123 @@
                 `;
             }
         });
+        
+        // 初始化语言切换功能
+        function initializeLanguage() {
+            // 设置搜索输入框的placeholder
+            updateSearchPlaceholder();
+            
+            // 为语言按钮添加事件监听器
+            document.querySelectorAll('.language-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const lang = this.getAttribute('data-lang');
+                    switchLanguage(lang);
+                });
+            });
+            
+            // 从localStorage加载用户之前选择的语言，如果没有则使用默认语言（英文）
+            const savedLanguage = localStorage.getItem('preferredLanguage');
+            if (savedLanguage) {
+                switchLanguage(savedLanguage);
+            } else {
+                // 默认显示英文
+                switchLanguage('en');
+            }
+        }
+        
+        // 切换语言
+        function switchLanguage(lang) {
+            // 保存当前语言
+            currentLanguage = lang;
+            localStorage.setItem('preferredLanguage', lang);
+            
+            // 更新语言按钮状态
+            document.querySelectorAll('.language-btn').forEach(btn => {
+                if (btn.getAttribute('data-lang') === lang) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            // 隐藏所有语言元素
+            document.querySelectorAll('[class*="lang-"]').forEach(el => {
+                el.classList.add('d-none');
+            });
+            
+            // 显示当前语言的元素
+            document.querySelectorAll(`.lang-${lang}`).forEach(el => {
+                el.classList.remove('d-none');
+            });
+            
+            // 更新搜索输入框的placeholder
+            updateSearchPlaceholder();
+            
+            // 更新动态生成的内容
+            updateDynamicContent();
+        }
+        
+        // 更新搜索输入框的placeholder
+        function updateSearchPlaceholder() {
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                searchInput.placeholder = getLocalizedText('search_placeholder');
+            }
+        }
+        
+        // 更新动态生成的内容
+        function updateDynamicContent() {
+            // 如果有课程显示，重新显示当前页
+            if (filteredCourses.length > 0) {
+                displayCourses(currentPage);
+            }
+            
+            // 更新加载状态文本
+            updateLoadingTexts();
+        }
+        
+        // 更新加载状态文本
+        function updateLoadingTexts() {
+            const loadingText = document.getElementById('search-loading-text');
+            if (loadingText && loadingText.textContent) {
+                // 根据当前显示的文本选择合适的翻译键
+                if (loadingText.textContent.includes('搜索')) {
+                    loadingText.innerHTML = `<span class="lang-${currentLanguage}">${getLocalizedText('searching_courses')}</span>`;
+                } else if (loadingText.textContent.includes('准备')) {
+                    loadingText.innerHTML = `<span class="lang-${currentLanguage}">${getLocalizedText('preparing_model')}</span>`;
+                }
+            }
+            
+            // 更新模型加载状态文本
+            const modelStatus = document.getElementById('model-loading-status');
+            if (modelStatus && modelStatus.textContent) {
+                if (modelStatus.textContent.includes('准备')) {
+                    modelStatus.innerHTML = `<span class="lang-${currentLanguage}">${getLocalizedText('preparing_model')}</span>`;
+                } else if (modelStatus.textContent.includes('下载')) {
+                    modelStatus.innerHTML = `<span class="lang-${currentLanguage}">${getLocalizedText('downloading_model')}</span>`;
+                } else if (modelStatus.textContent.includes('加载')) {
+                    modelStatus.innerHTML = `<span class="lang-${currentLanguage}">${getLocalizedText('loading_model_text')}</span>`;
+                } else if (modelStatus.textContent.includes('初始化')) {
+                    modelStatus.innerHTML = `<span class="lang-${currentLanguage}">${getLocalizedText('initializing_model')}</span>`;
+                } else if (modelStatus.textContent.includes('完成')) {
+                    modelStatus.innerHTML = `<span class="lang-${currentLanguage}">${getLocalizedText('model_loaded')}</span>`;
+                }
+            }
+        }
+        
+        // 获取本地化文本
+        function getLocalizedText(key, ...args) {
+            let text = languageTexts[key]?.[currentLanguage] || key;
+            
+            // 替换参数
+            if (args.length > 0) {
+                args.forEach((arg, index) => {
+                    text = text.replace(`{${index}}`, arg);
+                });
+            }
+            
+            return text;
+        }
         
         // 检测浏览器类型
         function checkBrowser() {
@@ -684,14 +1100,14 @@
             const loadingSubtext = document.getElementById('search-loading-subtext');
             
             if (useSemanticSearch) {
-                loadingText.textContent = '正在进行语义搜索...';
+                loadingText.innerHTML = `<span class="lang-${currentLanguage}">${getLocalizedText('calculating_similarity')}</span>`;
                 loadingSubtext.style.display = 'block';
                 
                 if (!isModelLoaded) {
-                    loadingText.textContent = '正在准备语义搜索模型...';
+                    loadingText.innerHTML = `<span class="lang-${currentLanguage}">${getLocalizedText('preparing_model')}</span>`;
                 }
             } else {
-                loadingText.textContent = '正在搜索课程...';
+                loadingText.innerHTML = `<span class="lang-${currentLanguage}">${getLocalizedText('searching_courses')}</span>`;
                 loadingSubtext.style.display = 'none';
             }
             
@@ -728,7 +1144,7 @@
                     // 如果模型加载成功，应用语义搜索
                     if (isModelLoaded) {
                         // 更新加载文本
-                        loadingText.textContent = '正在计算语义相似度...';
+                        loadingText.innerHTML = `<span class="lang-${currentLanguage}">${getLocalizedText('calculating_similarity')}</span>`;
                         
                         // 等待一小段时间，让UI更新
                         await new Promise(resolve => setTimeout(resolve, 50));
@@ -736,7 +1152,7 @@
                         filteredCourses = await semanticSearch(searchTerm, tempFilteredCourses);
                     } else {
                         // 如果模型加载失败，回退到关键词搜索
-                        loadingText.textContent = '语义搜索模型加载失败，使用关键词搜索...';
+                        loadingText.innerHTML = `<span class="lang-${currentLanguage}">${getLocalizedText('loading_failed')}</span>`;
                         await new Promise(resolve => setTimeout(resolve, 1000));
                         
                         filteredCourses = tempFilteredCourses.filter(course => {
@@ -785,7 +1201,7 @@
                 coursesContainer.innerHTML = `
                     <div class="col-12">
                         <div class="alert alert-info" role="alert">
-                            没有找到匹配的课程。请尝试不同的搜索条件，或考虑启用语义搜索功能。
+                            ${getLocalizedText('no_courses_found')}
                         </div>
                     </div>
                 `;
@@ -801,12 +1217,12 @@
                 // 检查是否有语义相似度信息
                 const hasSimilarity = course.semanticSimilarity !== undefined;
                 const similarityBadge = hasSimilarity ? 
-                    `<span class="badge bg-info ms-2">相似度: ${(course.semanticSimilarity * 100).toFixed(1)}%</span>` : '';
+                    `<span class="badge bg-info ms-2">${getLocalizedText('similarity')}: ${(course.semanticSimilarity * 100).toFixed(1)}%</span>` : '';
                 
                 courseCard.innerHTML = `
                     <div class="card">
                         <div class="card-header">
-                            <h5 class="card-title mb-0">${course.courseName || '未知课程'}</h5>
+                            <h5 class="card-title mb-0">${course.courseName || getLocalizedText('unknown_course')}</h5>
                         </div>
                         <div class="card-body">
                             <div class="mb-3">
@@ -818,27 +1234,27 @@
                             
                             <div class="course-info">
                                 <i class="bi bi-person-badge"></i>
-                                <strong>教师:</strong> ${course.instructor || '未指定'}
+                                <strong>${getLocalizedText('instructor')}:</strong> ${course.instructor || getLocalizedText('not_specified')}
                             </div>
                             
                             <div class="course-info">
                                 <i class="bi bi-code-square"></i>
-                                <strong>课程代码:</strong> ${course.courseCode || '未指定'}
+                                <strong>${getLocalizedText('course_code')}:</strong> ${course.courseCode || getLocalizedText('not_specified')}
                             </div>
                             
                             <div class="course-info">
                                 <i class="bi bi-building"></i>
-                                <strong>院系:</strong> ${course.department || '未指定'}
+                                <strong>${getLocalizedText('department')}:</strong> ${course.department || getLocalizedText('not_specified')}
                             </div>
                             
                             <div class="course-info">
                                 <i class="bi bi-mortarboard"></i>
-                                <strong>专业:</strong> ${course.major || '未指定'}
+                                <strong>${getLocalizedText('major')}:</strong> ${course.major || getLocalizedText('not_specified')}
                             </div>
                             
                             <div class="course-info">
                                 <i class="bi bi-geo-alt"></i>
-                                <strong>地点:</strong> ${course.location || '未指定'}
+                                <strong>${getLocalizedText('location')}:</strong> ${course.location || getLocalizedText('not_specified')}
                             </div>
                         </div>
                     </div>
@@ -859,10 +1275,8 @@
             if (coursesPerPage === -1) {
                 pagination.innerHTML = `
                     <div class="text-center mt-3">
-                        <span class="text-muted">找不到更多课程？试试在搜索框启用语义搜索！</span>
-                        <span class="text-muted">这可以按照实际语义来模糊搜索某一个方向的所有课程</span>
+                        <span class="text-muted">${getLocalizedText('semantic_search_tip')}</span>
                     </div>
-
                 `;
                 return;
             }
@@ -917,10 +1331,10 @@
             pageInputItem.className = 'page-item ms-2 d-flex align-items-center pagination-input-container';
             pageInputItem.innerHTML = `
                 <div class="pagination-input-group">
-                    <span class="me-2 d-none d-sm-inline">跳转到</span>
+                    <span class="me-2 d-none d-sm-inline">${getLocalizedText('jump_to_page')}</span>
                     <input type="number" id="page-input" class="form-control form-control-sm" style="width: 60px;" min="1" max="${totalPages}" value="${currentPage}">
-                    <span class="mx-2 d-none d-sm-inline">页</span>
-                    <button class="btn btn-sm filter-btn" id="go-to-page-btn">跳转</button>
+                    <span class="mx-2 d-none d-sm-inline">${getLocalizedText('page')}</span>
+                    <button class="btn btn-sm filter-btn" id="go-to-page-btn">${getLocalizedText('jump')}</button>
                 </div>
             `;
             pagination.appendChild(pageInputItem);
@@ -969,7 +1383,7 @@
                 // 显示加载提示
                 const searchToggle = document.getElementById('semantic-search-toggle');
                 const originalLabel = searchToggle.nextElementSibling.textContent;
-                searchToggle.nextElementSibling.textContent = '加载模型中...';
+                searchToggle.nextElementSibling.innerHTML = `<span class="lang-${currentLanguage}">${getLocalizedText('loading_model')}</span>`;
                 searchToggle.disabled = true;
                 
                 // 显示进度条
@@ -981,7 +1395,7 @@
                 loadingContainer.style.display = 'flex';
                 progressBar.style.width = '0%';
                 progressBar.setAttribute('aria-valuenow', '0');
-                statusText.textContent = '正在下载模型...';
+                statusText.innerHTML = `<span class="lang-${currentLanguage}">${getLocalizedText('downloading_model')}</span>`;
                 
                 // 添加取消按钮事件
                 cancelButton.addEventListener('click', function() {
@@ -990,7 +1404,7 @@
                     
                     // 重置UI
                     searchToggle.checked = false;
-                    searchToggle.nextElementSibling.textContent = originalLabel;
+                    searchToggle.nextElementSibling.innerHTML = originalLabel;
                     searchToggle.disabled = false;
                     isModelLoading = false;
                 });
@@ -1020,11 +1434,11 @@
                         
                         // 更新状态文本
                         if (progress < 30) {
-                            statusText.textContent = '正在下载模型...';
+                            statusText.innerHTML = `<span class="lang-${currentLanguage}">${getLocalizedText('downloading_model')}</span>`;
                         } else if (progress < 60) {
-                            statusText.textContent = '正在加载模型...';
+                            statusText.innerHTML = `<span class="lang-${currentLanguage}">${getLocalizedText('loading_model_text')}</span>`;
                         } else {
-                            statusText.textContent = '正在初始化模型...';
+                            statusText.innerHTML = `<span class="lang-${currentLanguage}">${getLocalizedText('initializing_model')}</span>`;
                         }
                     }
                 }, 100);
@@ -1043,7 +1457,7 @@
                 clearInterval(progressInterval);
                 progressBar.style.width = '100%';
                 progressBar.setAttribute('aria-valuenow', '100');
-                statusText.textContent = '模型加载完成！';
+                statusText.innerHTML = `<span class="lang-${currentLanguage}">${getLocalizedText('model_loaded')}</span>`;
                 
                 // 短暂显示完成状态后隐藏进度条
                 setTimeout(() => {
@@ -1053,7 +1467,7 @@
                 }, 1000);
                 
                 // 恢复UI
-                searchToggle.nextElementSibling.textContent = originalLabel;
+                searchToggle.nextElementSibling.innerHTML = originalLabel;
                 searchToggle.disabled = false;
                 
                 console.log('语义搜索模型加载完成');
@@ -1070,7 +1484,7 @@
                 const statusText = document.getElementById('model-loading-status');
                 
                 if (loadingContainer.style.display !== 'none') {
-                    statusText.textContent = `加载失败: ${error.message}`;
+                    statusText.innerHTML = `<span class="lang-${currentLanguage}">${getLocalizedText('loading_failed')} ${error.message}</span>`;
                     setTimeout(() => {
                         loadingContainer.style.display = 'none';
                     }, 2000);
@@ -1079,7 +1493,7 @@
                 // 显示错误并重置UI
                 const searchToggle = document.getElementById('semantic-search-toggle');
                 searchToggle.checked = false;
-                searchToggle.nextElementSibling.textContent = '语义搜索 (加载失败)';
+                searchToggle.nextElementSibling.innerHTML = `<span class="lang-${currentLanguage}">${getLocalizedText('semantic_search_failed')}</span>`;
                 searchToggle.disabled = false;
             } finally {
                 if (!isCancelled) {
@@ -1123,7 +1537,7 @@
                 const loadingText = document.getElementById('search-loading-text');
                 const totalCourses = courseNames.length;
                 
-                loadingText.textContent = `正在准备处理 ${totalCourses} 门课程的向量...`;
+                loadingText.innerHTML = `<span class="lang-${currentLanguage}">${getLocalizedText('preparing_vectors', totalCourses)}</span>`;
                 await new Promise(resolve => setTimeout(resolve, 50)); // 让UI更新
                 
                 // 批量生成向量 - 为了避免内存问题，我们分批处理
@@ -1134,7 +1548,7 @@
                     const batchEnd = Math.min(i + batchSize, courseNames.length);
                     const currentBatch = courseNames.slice(i, batchEnd);
                     
-                    loadingText.textContent = `正在处理课程向量 (${i + 1}-${batchEnd}/${totalCourses})...`;
+                    loadingText.innerHTML = `<span class="lang-${currentLanguage}">${getLocalizedText('processing_vectors', i + 1, batchEnd, totalCourses)}</span>`;
                     await new Promise(resolve => setTimeout(resolve, 50)); // 让UI更新
                     
                     const embeddings = await useModel.embed(currentBatch);
@@ -1146,7 +1560,7 @@
                     }
                 }
                 
-                loadingText.textContent = '课程向量处理完成，正在应用搜索...';
+                loadingText.innerHTML = `<span class="lang-${currentLanguage}">${getLocalizedText('vectors_processed')}</span>`;
                 return result;
             } catch (error) {
                 console.error('生成课程向量时出错:', error);
@@ -1163,7 +1577,7 @@
                 const loadingText = document.getElementById('search-loading-text');
                 
                 // 生成查询向量
-                loadingText.textContent = '正在生成查询向量...';
+                loadingText.innerHTML = `<span class="lang-${currentLanguage}">${getLocalizedText('generating_query_vector')}</span>`;
                 await new Promise(resolve => setTimeout(resolve, 50)); // 让UI更新
                 
                 const queryEmbedding = await useModel.embed([query]);
@@ -1171,14 +1585,14 @@
                 
                 // 如果课程向量为空，则生成
                 if (Object.keys(courseVectors).length === 0) {
-                    loadingText.textContent = '正在生成课程向量（初次使用可能需要较长时间）...';
+                    loadingText.innerHTML = `<span class="lang-${currentLanguage}">${getLocalizedText('generating_course_vectors')}</span>`;
                     await new Promise(resolve => setTimeout(resolve, 50)); // 让UI更新
                     
                     courseVectors = await generateCourseVectors(courses);
                 }
                 
                 // 计算相似度并排序
-                loadingText.textContent = '正在计算相似度并排序结果...';
+                loadingText.innerHTML = `<span class="lang-${currentLanguage}">${getLocalizedText('calculating_sorting')}</span>`;
                 await new Promise(resolve => setTimeout(resolve, 50)); // 让UI更新
                 
                 const results = courses.map(course => {
