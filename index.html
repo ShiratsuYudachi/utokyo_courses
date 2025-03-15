@@ -129,6 +129,29 @@
             color: var(--primary-color);
         }
         
+        /* 搜索加载提示样式 */
+        .search-loading-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .search-loading-text {
+            margin-top: 15px;
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+        
+        .search-loading-subtext {
+            margin-top: 10px;
+            color: #666;
+            font-size: 0.9rem;
+            max-width: 500px;
+        }
+        
         footer {
             background-color: var(--primary-color);
             color: white;
@@ -177,6 +200,72 @@
             display: flex;
             align-items: center;
             margin-left: 15px;
+        }
+        
+        /* 语义搜索切换按钮样式 */
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .form-check-label {
+            font-size: 0.9rem;
+            color: var(--text-color);
+        }
+        
+        /* 相似度徽章样式 */
+        .badge.bg-info {
+            background-color: #17a2b8 !important;
+            color: white;
+        }
+        
+        /* 模型加载进度条样式 */
+        .model-loading-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .model-loading-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .model-loading-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+        
+        .model-loading-progress {
+            height: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        
+        .model-loading-progress .progress-bar {
+            background-color: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+        
+        .model-loading-status {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0;
         }
         
         /* 响应式分页控件 */
@@ -296,9 +385,15 @@
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <button class="btn filter-btn w-100" id="filter-btn">
-                            <i class="bi bi-funnel me-2"></i>应用过滤器
-                        </button>
+                        <div class="d-flex">
+                            <button class="btn filter-btn w-100 me-2" id="filter-btn">
+                                <i class="bi bi-funnel me-2"></i>应用过滤器
+                            </button>
+                            <div class="form-check form-switch d-flex align-items-center">
+                                <input class="form-check-input" type="checkbox" id="semantic-search-toggle">
+                                <label class="form-check-label ms-2" for="semantic-search-toggle">语义搜索</label>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -310,8 +405,15 @@
             
             <!-- 加载动画 -->
             <div id="loading" class="loading">
-                <div class="spinner-border" role="status">
-                    <span class="visually-hidden">加载中...</span>
+                <div class="search-loading-container">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">加载中...</span>
+                    </div>
+                    <div id="search-loading-text" class="search-loading-text">正在搜索课程...</div>
+                    <div id="search-loading-subtext" class="search-loading-subtext">
+                        初次使用语义搜索时，需要加载和处理向量数据，可能需要几十秒至几分钟。
+                        后续搜索将会更快。
+                    </div>
                 </div>
             </div>
             
@@ -336,8 +438,24 @@
         </div>
     </footer>
 
+    <!-- 模型加载进度条 -->
+    <div id="model-loading-container" class="model-loading-container" style="display: none;">
+        <div class="model-loading-card">
+            <div class="model-loading-title">正在加载语义搜索模型</div>
+            <div class="progress model-loading-progress">
+                <div id="model-loading-progress-bar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <p id="model-loading-status" class="model-loading-status">准备中...</p>
+            <div class="text-end mt-3">
+                <button id="cancel-model-loading" class="btn btn-sm btn-outline-secondary">取消</button>
+            </div>
+        </div>
+    </div>
+
     <!-- JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder"></script>
     <script>
         // 全局变量
         let allCourses = [];
@@ -345,6 +463,10 @@
         let filteredCourses = [];
         let currentPage = 1;
         let coursesPerPage = -1;
+        let useModel = null;
+        let courseVectors = {};
+        let isModelLoading = false;
+        let isModelLoaded = false;
         
         // 页面加载完成后执行
         document.addEventListener('DOMContentLoaded', async function() {
@@ -376,6 +498,20 @@
                         coursesPerPage = newPageSize;
                         currentPage = 1; // 重置到第一页
                         displayCourses(1);
+                    }
+                });
+                
+                // 添加语义搜索切换按钮的事件监听器
+                document.getElementById('semantic-search-toggle').addEventListener('change', function() {
+                    if (this.checked && !isModelLoaded && !isModelLoading) {
+                        // 当用户首次启用语义搜索时，加载模型
+                        loadModel().then(() => {
+                            // 如果有搜索词，重新应用过滤器
+                            const searchTerm = document.getElementById('search-input').value.trim();
+                            if (searchTerm) {
+                                applyFilters();
+                            }
+                        });
                     }
                 });
             } catch (error) {
@@ -474,34 +610,98 @@
         }
         
         // 应用过滤器
-        function applyFilters() {
+        async function applyFilters() {
             const searchTerm = document.getElementById('search-input').value.toLowerCase();
             const termFilter = document.getElementById('term-filter').value;
             const levelFilter = document.getElementById('level-filter').value;
             const departmentFilter = document.getElementById('department-filter').value;
+            const useSemanticSearch = document.getElementById('semantic-search-toggle').checked;
             
-            filteredCourses = uniqueCourses.filter(course => {
-                // 搜索词过滤
-                const matchesSearch = !searchTerm || 
-                    (course.courseName && course.courseName.toLowerCase().includes(searchTerm)) ||
-                    (course.instructor && course.instructor.toLowerCase().includes(searchTerm)) ||
-                    (course.courseCode && course.courseCode.toLowerCase().includes(searchTerm));
-                
-                // 学期过滤
-                const matchesTerm = !termFilter || course.term === termFilter;
-                
-                // 级别过滤
-                const matchesLevel = !levelFilter || course.level === levelFilter;
-                
-                // 院系过滤
-                const matchesDepartment = !departmentFilter || course.department === departmentFilter;
-                
-                return matchesSearch && matchesTerm && matchesLevel && matchesDepartment;
-            });
+            // 显示加载指示器
+            document.getElementById('loading').style.display = 'flex';
             
-            // 重置到第一页并显示结果
-            currentPage = 1;
-            displayCourses(currentPage);
+            // 更新加载文本
+            const loadingText = document.getElementById('search-loading-text');
+            const loadingSubtext = document.getElementById('search-loading-subtext');
+            
+            if (useSemanticSearch) {
+                loadingText.textContent = '正在进行语义搜索...';
+                loadingSubtext.style.display = 'block';
+                
+                if (!isModelLoaded) {
+                    loadingText.textContent = '正在准备语义搜索模型...';
+                }
+            } else {
+                loadingText.textContent = '正在搜索课程...';
+                loadingSubtext.style.display = 'none';
+            }
+            
+            try {
+                // 先应用非搜索词的过滤条件
+                let tempFilteredCourses = uniqueCourses.filter(course => {
+                    // 学期过滤
+                    const matchesTerm = !termFilter || course.term === termFilter;
+                    
+                    // 级别过滤
+                    const matchesLevel = !levelFilter || course.level === levelFilter;
+                    
+                    // 院系过滤
+                    const matchesDepartment = !departmentFilter || course.department === departmentFilter;
+                    
+                    return matchesTerm && matchesLevel && matchesDepartment;
+                });
+                
+                // 如果没有搜索词，直接返回过滤结果
+                if (!searchTerm) {
+                    filteredCourses = tempFilteredCourses;
+                    currentPage = 1;
+                    displayCourses(currentPage);
+                    return;
+                }
+                
+                // 根据搜索类型应用搜索
+                if (useSemanticSearch) {
+                    // 如果模型未加载，先加载模型
+                    if (!isModelLoaded && !isModelLoading) {
+                        await loadModel();
+                    }
+                    
+                    // 如果模型加载成功，应用语义搜索
+                    if (isModelLoaded) {
+                        // 更新加载文本
+                        loadingText.textContent = '正在计算语义相似度...';
+                        
+                        // 等待一小段时间，让UI更新
+                        await new Promise(resolve => setTimeout(resolve, 50));
+                        
+                        filteredCourses = await semanticSearch(searchTerm, tempFilteredCourses);
+                    } else {
+                        // 如果模型加载失败，回退到关键词搜索
+                        loadingText.textContent = '语义搜索模型加载失败，使用关键词搜索...';
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        
+                        filteredCourses = tempFilteredCourses.filter(course => {
+                            return (course.courseName && course.courseName.toLowerCase().includes(searchTerm)) ||
+                                (course.instructor && course.instructor.toLowerCase().includes(searchTerm)) ||
+                                (course.courseCode && course.courseCode.toLowerCase().includes(searchTerm));
+                        });
+                    }
+                } else {
+                    // 使用关键词搜索
+                    filteredCourses = tempFilteredCourses.filter(course => {
+                        return (course.courseName && course.courseName.toLowerCase().includes(searchTerm)) ||
+                            (course.instructor && course.instructor.toLowerCase().includes(searchTerm)) ||
+                            (course.courseCode && course.courseCode.toLowerCase().includes(searchTerm));
+                    });
+                }
+                
+                // 重置到第一页并显示结果
+                currentPage = 1;
+                displayCourses(currentPage);
+            } finally {
+                // 隐藏加载指示器
+                document.getElementById('loading').style.display = 'none';
+            }
         }
         
         // 显示课程
@@ -538,6 +738,12 @@
             currentCourses.forEach(course => {
                 const courseCard = document.createElement('div');
                 courseCard.className = 'col-md-6 col-lg-6';
+                
+                // 检查是否有语义相似度信息
+                const hasSimilarity = course.semanticSimilarity !== undefined;
+                const similarityBadge = hasSimilarity ? 
+                    `<span class="badge bg-info ms-2">相似度: ${(course.semanticSimilarity * 100).toFixed(1)}%</span>` : '';
+                
                 courseCard.innerHTML = `
                     <div class="card">
                         <div class="card-header">
@@ -548,6 +754,7 @@
                                 ${course.term ? `<span class="badge badge-term">${course.term}</span>` : ''}
                                 ${course.level ? `<span class="badge badge-level">${course.level}</span>` : ''}
                                 ${course.schedule ? `<span class="badge badge-schedule">${course.schedule}</span>` : ''}
+                                ${similarityBadge}
                             </div>
                             
                             <div class="course-info">
@@ -686,6 +893,255 @@
             
             // 显示指定页码的课程
             displayCourses(pageNumber);
+        }
+        
+        // 加载语义搜索模型
+        async function loadModel() {
+            if (isModelLoaded || isModelLoading) return;
+            
+            // 用于控制是否取消加载
+            let isCancelled = false;
+            
+            try {
+                isModelLoading = true;
+                
+                // 显示加载提示
+                const searchToggle = document.getElementById('semantic-search-toggle');
+                const originalLabel = searchToggle.nextElementSibling.textContent;
+                searchToggle.nextElementSibling.textContent = '加载模型中...';
+                searchToggle.disabled = true;
+                
+                // 显示进度条
+                const loadingContainer = document.getElementById('model-loading-container');
+                const progressBar = document.getElementById('model-loading-progress-bar');
+                const statusText = document.getElementById('model-loading-status');
+                const cancelButton = document.getElementById('cancel-model-loading');
+                
+                loadingContainer.style.display = 'flex';
+                progressBar.style.width = '0%';
+                progressBar.setAttribute('aria-valuenow', '0');
+                statusText.textContent = '正在下载模型...';
+                
+                // 添加取消按钮事件
+                cancelButton.addEventListener('click', function() {
+                    isCancelled = true;
+                    loadingContainer.style.display = 'none';
+                    
+                    // 重置UI
+                    searchToggle.checked = false;
+                    searchToggle.nextElementSibling.textContent = originalLabel;
+                    searchToggle.disabled = false;
+                    isModelLoading = false;
+                });
+                
+                // 模拟进度更新
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    // 如果已取消，清除定时器
+                    if (isCancelled) {
+                        clearInterval(progressInterval);
+                        return;
+                    }
+                    
+                    // 模拟下载进度，实际上TensorFlow.js没有提供进度回调
+                    // 所以我们使用一个非线性函数来模拟进度，让它看起来更真实
+                    if (progress < 90) {
+                        if (progress < 30) {
+                            progress += 1;
+                        } else if (progress < 60) {
+                            progress += 0.7;
+                        } else {
+                            progress += 0.3;
+                        }
+                        
+                        progressBar.style.width = `${progress}%`;
+                        progressBar.setAttribute('aria-valuenow', progress.toString());
+                        
+                        // 更新状态文本
+                        if (progress < 30) {
+                            statusText.textContent = '正在下载模型...';
+                        } else if (progress < 60) {
+                            statusText.textContent = '正在加载模型...';
+                        } else {
+                            statusText.textContent = '正在初始化模型...';
+                        }
+                    }
+                }, 100);
+                
+                // 加载模型
+                useModel = await use.load();
+                
+                // 如果在加载过程中取消了，则不继续处理
+                if (isCancelled) {
+                    return;
+                }
+                
+                isModelLoaded = true;
+                
+                // 完成进度
+                clearInterval(progressInterval);
+                progressBar.style.width = '100%';
+                progressBar.setAttribute('aria-valuenow', '100');
+                statusText.textContent = '模型加载完成！';
+                
+                // 短暂显示完成状态后隐藏进度条
+                setTimeout(() => {
+                    if (!isCancelled) {
+                        loadingContainer.style.display = 'none';
+                    }
+                }, 1000);
+                
+                // 恢复UI
+                searchToggle.nextElementSibling.textContent = originalLabel;
+                searchToggle.disabled = false;
+                
+                console.log('语义搜索模型加载完成');
+            } catch (error) {
+                console.error('加载语义搜索模型时出错:', error);
+                
+                // 如果已经取消，则不显示错误
+                if (isCancelled) {
+                    return;
+                }
+                
+                // 显示错误状态
+                const loadingContainer = document.getElementById('model-loading-container');
+                const statusText = document.getElementById('model-loading-status');
+                
+                if (loadingContainer.style.display !== 'none') {
+                    statusText.textContent = `加载失败: ${error.message}`;
+                    setTimeout(() => {
+                        loadingContainer.style.display = 'none';
+                    }, 2000);
+                }
+                
+                // 显示错误并重置UI
+                const searchToggle = document.getElementById('semantic-search-toggle');
+                searchToggle.checked = false;
+                searchToggle.nextElementSibling.textContent = '语义搜索 (加载失败)';
+                searchToggle.disabled = false;
+            } finally {
+                if (!isCancelled) {
+                    isModelLoading = false;
+                }
+            }
+        }
+        
+        // 计算余弦相似度
+        function cosineSimilarity(vecA, vecB) {
+            let dotProduct = 0;
+            let normA = 0;
+            let normB = 0;
+            
+            for (let i = 0; i < vecA.length; i++) {
+                dotProduct += vecA[i] * vecB[i];
+                normA += vecA[i] * vecA[i];
+                normB += vecB[i] * vecB[i];
+            }
+            
+            normA = Math.sqrt(normA);
+            normB = Math.sqrt(normB);
+            
+            if (normA === 0 || normB === 0) {
+                return 0;
+            }
+            
+            return dotProduct / (normA * normB);
+        }
+        
+        // 生成课程向量
+        async function generateCourseVectors(courses) {
+            if (!isModelLoaded || !useModel) return {};
+            
+            const courseNames = courses.map(course => course.courseName || '').filter(name => name !== '');
+            
+            if (courseNames.length === 0) return {};
+            
+            try {
+                // 更新加载文本
+                const loadingText = document.getElementById('search-loading-text');
+                const totalCourses = courseNames.length;
+                
+                loadingText.textContent = `正在准备处理 ${totalCourses} 门课程的向量...`;
+                await new Promise(resolve => setTimeout(resolve, 50)); // 让UI更新
+                
+                // 批量生成向量 - 为了避免内存问题，我们分批处理
+                const batchSize = 100; // 每批处理的课程数量
+                const result = {};
+                
+                for (let i = 0; i < courseNames.length; i += batchSize) {
+                    const batchEnd = Math.min(i + batchSize, courseNames.length);
+                    const currentBatch = courseNames.slice(i, batchEnd);
+                    
+                    loadingText.textContent = `正在处理课程向量 (${i + 1}-${batchEnd}/${totalCourses})...`;
+                    await new Promise(resolve => setTimeout(resolve, 50)); // 让UI更新
+                    
+                    const embeddings = await useModel.embed(currentBatch);
+                    const vectors = embeddings.arraySync();
+                    
+                    // 将向量与课程名称关联
+                    for (let j = 0; j < currentBatch.length; j++) {
+                        result[currentBatch[j]] = vectors[j];
+                    }
+                }
+                
+                loadingText.textContent = '课程向量处理完成，正在应用搜索...';
+                return result;
+            } catch (error) {
+                console.error('生成课程向量时出错:', error);
+                return {};
+            }
+        }
+        
+        // 语义搜索
+        async function semanticSearch(query, courses) {
+            if (!isModelLoaded || !useModel) return courses;
+            
+            try {
+                // 更新加载文本
+                const loadingText = document.getElementById('search-loading-text');
+                
+                // 生成查询向量
+                loadingText.textContent = '正在生成查询向量...';
+                await new Promise(resolve => setTimeout(resolve, 50)); // 让UI更新
+                
+                const queryEmbedding = await useModel.embed([query]);
+                const queryVector = queryEmbedding.arraySync()[0];
+                
+                // 如果课程向量为空，则生成
+                if (Object.keys(courseVectors).length === 0) {
+                    loadingText.textContent = '正在生成课程向量（初次使用可能需要较长时间）...';
+                    await new Promise(resolve => setTimeout(resolve, 50)); // 让UI更新
+                    
+                    courseVectors = await generateCourseVectors(courses);
+                }
+                
+                // 计算相似度并排序
+                loadingText.textContent = '正在计算相似度并排序结果...';
+                await new Promise(resolve => setTimeout(resolve, 50)); // 让UI更新
+                
+                const results = courses.map(course => {
+                    if (!course.courseName || !courseVectors[course.courseName]) {
+                        return { course, similarity: 0 };
+                    }
+                    
+                    const similarity = cosineSimilarity(queryVector, courseVectors[course.courseName]);
+                    return { course, similarity };
+                })
+                .filter(item => item.similarity > 0.3) // 设置相似度阈值
+                .sort((a, b) => b.similarity - a.similarity);
+                
+                // 将相似度信息添加到课程对象中
+                return results.map(item => {
+                    return {
+                        ...item.course,
+                        semanticSimilarity: item.similarity
+                    };
+                });
+            } catch (error) {
+                console.error('语义搜索时出错:', error);
+                return courses;
+            }
         }
     </script>
 </body>
