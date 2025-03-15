@@ -219,6 +219,18 @@
             color: white;
         }
         
+        /* 浏览器兼容性提示样式 */
+        .alert-warning {
+            background-color: #fff3cd;
+            border-color: #ffecb5;
+            color: #664d03;
+        }
+        
+        .alert-warning .text-muted {
+            color: #6c757d !important;
+            font-size: 0.9em;
+        }
+        
         /* 模型加载进度条样式 */
         .model-loading-container {
             position: fixed;
@@ -396,6 +408,18 @@
                         </div>
                     </div>
                 </div>
+                <!-- 浏览器兼容性提示 -->
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <div class="alert alert-warning py-2 mb-0" role="alert">
+                            <small>
+                                <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                请使用电脑端Chrome浏览器访问以使用语义搜索功能，手机端或其他浏览器访问可能会因资源占用过大杀掉页面。
+                                <span class="text-muted fst-italic">等我有钱有时间了就来做个后端.jpg</span>
+                            </small>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -413,12 +437,6 @@
                     <div id="search-loading-subtext" class="search-loading-subtext">
                         初次使用语义搜索时，需要加载和处理向量数据，可能需要几十秒至几分钟。
                         后续搜索将会更快。
-                    </div>
-                    <div id="search-loading-subtext" class="search-loading-subtext">
-                        推荐使用电脑访问，手机端网页可能会被杀掉
-                    </div>
-                    <div id="search-loading-subtext" class="search-loading-subtext">
-                        等我有钱有时间了就做个后端.jpg
                     </div>
                 </div>
             </div>
@@ -477,6 +495,9 @@
         // 页面加载完成后执行
         document.addEventListener('DOMContentLoaded', async function() {
             try {
+                // 检测浏览器类型
+                checkBrowser();
+                
                 // 加载课程数据
                 await loadCourseData();
                 
@@ -529,6 +550,38 @@
                 `;
             }
         });
+        
+        // 检测浏览器类型
+        function checkBrowser() {
+            const isChrome = /Chrome/.test(navigator.userAgent) && !/Edg/.test(navigator.userAgent) && !/OPR/.test(navigator.userAgent);
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            const warningAlert = document.querySelector('.alert-warning');
+            const semanticToggle = document.getElementById('semantic-search-toggle');
+            
+            if (isMobile) {
+                // 移动设备，显示更明显的警告，但不禁用功能
+                warningAlert.classList.remove('py-2', 'mb-0');
+                warningAlert.classList.add('py-3', 'mb-3');
+                warningAlert.innerHTML = `
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>注意：</strong> 检测到您正在使用移动设备访问。
+                    语义搜索功能可能会占用大量资源并导致页面卡顿或崩溃。
+                    <div class="mt-1">如遇问题，请使用电脑端Chrome浏览器访问。</div>
+                    <div class="mt-1 fst-italic text-muted">等我有钱有时间了就来做个后端.jpg</div>
+                `;
+            } else if (!isChrome) {
+                // 非Chrome浏览器但是电脑端，显示轻提示
+                warningAlert.innerHTML = `
+                    <small>
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                        推荐使用Chrome浏览器以获得最佳语义搜索体验，其他浏览器可能性能较差。
+                        <span class="text-muted fst-italic">等我有钱有时间了就来做个后端.jpg</span>
+                    </small>
+                `;
+            }
+            // 如果是电脑端Chrome浏览器，保持原始提示
+        }
         
         // 加载课程数据
         async function loadCourseData() {
@@ -732,7 +785,7 @@
                 coursesContainer.innerHTML = `
                     <div class="col-12">
                         <div class="alert alert-info" role="alert">
-                            没有找到匹配的课程。请尝试不同的搜索条件。
+                            没有找到匹配的课程。请尝试不同的搜索条件，或考虑启用语义搜索功能。
                         </div>
                     </div>
                 `;
