@@ -1,0 +1,1636 @@
+<html lang="en" class="translated-ltr"><script id="allow-copy_script" src="chrome-extension://aefehdhdciieocakfobpaaolhipkcpgc/content_scripts/copy.js"></script><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>University of Tokyo Course List</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #0f2e5c;
+            --secondary-color: #43a047;
+            --accent-color: #f5a623;
+            --text-color: #333;
+            --light-bg: #f8f9fa;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-color);
+            background-color: #f5f7fa;
+            padding-top: 60px;
+        }
+        
+        .navbar {
+            background-color: var(--primary-color);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            color: white !important;
+        }
+        
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin-bottom: 20px;
+            border: none;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 15px 20px;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        .badge {
+            font-weight: 500;
+            padding: 5px 10px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        
+        .badge-term {
+            background-color: var(--secondary-color);
+        }
+        
+        .badge-level {
+            background-color: var(--accent-color);
+            color: #333;
+        }
+        
+        .badge-schedule {
+            background-color: #5c6bc0;
+        }
+        
+        .search-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        
+        .filter-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+        }
+        
+        .filter-btn:hover {
+            background-color: #0d2649;
+        }
+        
+        .course-info {
+            margin-bottom: 8px;
+        }
+        
+        .course-info i {
+            width: 20px;
+            color: var(--primary-color);
+            margin-right: 8px;
+        }
+        
+        .pagination {
+            margin-top: 30px;
+            justify-content: center;
+        }
+        
+        .page-link {
+            color: var(--primary-color);
+        }
+        
+        .page-item.active .page-link {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+        
+        .spinner-border {
+            color: var(--primary-color);
+        }
+        
+        /* 搜索加载提示样式 */
+        .search-loading-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .search-loading-text {
+            margin-top: 15px;
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+        
+        .search-loading-subtext {
+            margin-top: 10px;
+            color: #666;
+            font-size: 0.9rem;
+            max-width: 500px;
+        }
+        
+        footer {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px 0;
+            margin-top: 50px;
+        }
+        
+        .stats-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        
+        .stats-item {
+            text-align: center;
+            padding: 15px;
+        }
+        
+        .stats-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .stats-label {
+            font-size: 1rem;
+            color: #666;
+        }
+        
+        /* 页码输入框和跳转按钮样式 */
+        #page-input {
+            border-radius: 4px;
+            border: 1px solid #ced4da;
+            text-align: center;
+        }
+        
+        #go-to-page-btn {
+            border-radius: 4px;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .pagination-input-group {
+            display: flex;
+            align-items: center;
+            margin-left: 15px;
+        }
+        
+        /* 语义搜索切换按钮样式 */
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .form-check-label {
+            font-size: 0.9rem;
+            color: var(--text-color);
+        }
+        
+        /* 相似度徽章样式 */
+        .badge.bg-info {
+            background-color: #17a2b8 !important;
+            color: white;
+        }
+        
+        /* 浏览器兼容性提示样式 */
+        .alert-warning {
+            background-color: #fff3cd;
+            border-color: #ffecb5;
+            color: #664d03;
+        }
+        
+        .alert-warning .text-muted {
+            color: #6c757d !important;
+            font-size: 0.9em;
+        }
+        
+        /* 模型加载进度条样式 */
+        .model-loading-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .model-loading-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .model-loading-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+        
+        .model-loading-progress {
+            height: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        
+        .model-loading-progress .progress-bar {
+            background-color: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+        
+        .model-loading-status {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0;
+        }
+        
+        /* 响应式分页控件 */
+        @media (max-width: 767px) {
+            .pagination {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .pagination-input-container {
+                margin-top: 10px;
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .pagination-input-group {
+                margin-left: 0;
+            }
+        }
+    </style>
+<style id="m8brzjwe.sx">rt.katakana-terminator-rt::before { content: attr(data-rt); }</style><link type="text/css" rel="stylesheet" charset="UTF-8" href="https://www.gstatic.com/_/translate_http/_/ss/k=translate_http.tr.NJgGN_yGIWM.L.W.O/am=AAY/d=0/rs=AN8SPfrTSMIvWAFISYN4u74dPJrX0HgUsw/m=el_main_css"></head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-book me-2"></i><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">University of Tokyo Course Browser
+            </font></font></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#"><i class="bi bi-house-door me-1"></i><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">front page</font></font></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#stats"><i class="bi bi-bar-chart me-1"></i><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">statistics</font></font></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#courses"><i class="bi bi-journal-text me-1"></i><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">course</font></font></a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <div class="container">
+        <!-- 欢迎信息 -->
+        <div class="row mb-4 mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h1 class="display-4"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Welcome to the University of Tokyo Course Browser</font></font></h1>
+                        <p class="lead"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Thanks to Claude 3.7 Sonnet</font></font></p>
+                        <a href="https://github.com/ShiratsuYudachi/utokyo_courses" target="_blank" class="github-link">
+                            <i class="bi bi-github me-1"></i>
+                            <span><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">If you find it useful, please consider giving it a Star. Suggestions for improvement are welcome to raise issues.</font></font></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 统计信息 -->
+        <section id="stats" class="mb-5">
+            <h2 class="mb-4"><i class="bi bi-bar-chart me-2"></i><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Course Statistics</font></font></h2>
+            <div class="stats-container">
+                <div class="row">
+                    <div class="col-md-4 stats-item">
+                        <div class="stats-number" id="total-courses">4187</div>
+                        <div class="stats-label"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Total number of courses</font></font></div>
+                    </div>
+                    <div class="col-md-4 stats-item">
+                        <div class="stats-number" id="unique-courses">2890</div>
+                        <div class="stats-label"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Number of courses after deduplication</font></font></div>
+                    </div>
+                    <div class="col-md-4 stats-item">
+                        <div class="stats-number" id="departments-count">66</div>
+                        <div class="stats-label"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Number of departments</font></font></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 搜索和过滤 -->
+        <section id="search" class="mb-5">
+            <h2 class="mb-4"><i class="bi bi-search me-2"></i><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Search courses</font></font></h2>
+            <div class="search-container">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <input type="text" class="form-control" id="search-input" placeholder="Search for course name, instructor or code...">
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="term-filter">
+                            <option value=""><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">All semesters</font></font></option>
+                        <option value="Year-long">Year-long</option><option value="Intensive">Intensive</option><option value="Ｓ１"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Ｓ１</font></font></option><option value="S1S2">S1S2</option><option value="S1S2A1A2"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">S1S2A1A2</font></font></option><option value="S">S</option><option value="Ｓ２"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">22</font></font></option><option value="年度跨り"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Over the fiscal year</font></font></option><option value="Ａ１"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">A1</font></font></option><option value="A1A2"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">A1A2</font></font></option><option value="A">A</option><option value="Ａ２"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">22</font></font></option><option value="Ｗ"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Ｗ</font></font></option><option value="A2S1"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">A2S1</font></font></option></select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="level-filter">
+                            <option value=""><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">All Levels</font></font></option>
+                        <option value="Undergraduate (Senior Div.)">Undergraduate (Senior Div.)</option><option value="Graduate">Graduate</option></select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="page-size-selector">
+                            <option value="10"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">10 items per page</font></font></option>
+                            <option value="20"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">20 items per page</font></font></option>
+                            <option value="50"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">50 items per page</font></font></option>
+                            <option value="100"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">100 items per page</font></font></option>
+                            <option value="200"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">200 items per page</font></font></option>
+                            <option value="500"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">500 records per page</font></font></option>
+                            <option value="1000"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">1000 records per page</font></font></option>
+                            <option value="-1" selected=""><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Show All</font></font></option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <select class="form-select" id="department-filter">
+                            <option value=""><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">All departments</font></font></option>
+                        <option value="Basic Theories of Education">Basic Theories of Education</option><option value="Division of Social Sciences in Education">Division of Social Sciences in Education</option><option value="基礎教育学専修　基礎教育学コース"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Basic Education Basic Education</font></font><ruby>コース<rt class="katakana-terminator-rt" data-rt="course"></rt></ruby></option><option value="教育社会科学専修　生涯学習基盤経営コース"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Education and Social Sciences Lifelong Learning Infrastructure Management</font></font><ruby>コース<rt class="katakana-terminator-rt" data-rt="course"></rt></ruby></option><option value="Master's Program">Master's Program</option><option value="心身発達科学専修　臨床心理学コース"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Psychological and Physical Development Science Clinical Psychology</font></font><ruby>コース<rt class="katakana-terminator-rt" data-rt="course"></rt></ruby></option><option value="Division of Educational Psychology">Division of Educational Psychology</option><option value="Division of Physical and Health Education">Division of Physical and Health Education</option><option value="心身発達科学専修　教育心理学コース"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Psychological and physical developmental science Educational psychology</font></font><ruby>コース<rt class="katakana-terminator-rt" data-rt="course"></rt></ruby></option><option value="Professional Development of  Teachers">Professional Development of  Teachers</option><option value="Curriculum Development">Curriculum Development</option><option value="School of Legal and Political Studies">School of Legal and Political Studies</option><option value="Social Sciences in Education">Social Sciences in Education</option><option value="Division of Educational Practices and Policies">Division of Educational Practices and Policies</option><option value="教育社会科学専修　比較教育社会学コース"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Educational and Social Sciences Comparative Sociology of Education</font></font><ruby>コース<rt class="katakana-terminator-rt" data-rt="course"></rt></ruby></option><option value="School Improvement and Policy Studies">School Improvement and Policy Studies</option><option value="心身発達科学専修　身体教育学コース"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Physical Development Science and Physical Education</font></font><ruby>コース<rt class="katakana-terminator-rt" data-rt="course"></rt></ruby></option><option value="教育社会科学専修　大学経営・政策コース"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Education and Social Sciences University Management and Policy</font></font><ruby>コース<rt class="katakana-terminator-rt" data-rt="course"></rt></ruby></option><option value="Faculty of Arts and Sciences">Faculty of Arts and Sciences</option><option value="Department of Interdisciplinary Sciences">Department of Interdisciplinary Sciences</option><option value="Geography and Spatial Design">Geography and Spatial Design</option><option value="Department of Integrated Sciences">Department of Integrated Sciences</option><option value="Faculty of Pharmaceutical Sciences">Faculty of Pharmaceutical Sciences</option><option value="Graduate School of Pharmaceutical Sciences">Graduate School of Pharmaceutical Sciences</option><option value="School of Medicine">School of Medicine</option><option value="Integrated Educational Sciences">Integrated Educational Sciences</option><option value="Faculty of Economics">Faculty of Economics</option><option value="Cultural Anthropology">Cultural Anthropology</option><option value="Developmental Sciences">Developmental Sciences</option><option value="Graduate School of Economics">Graduate School of Economics</option><option value="Environmental Sciences">Environmental Sciences</option><option value="Matter and Materials Science">Matter and Materials Science</option><option value="Integrated Life Sciences">Integrated Life Sciences</option><option value="Faculty of Law">Faculty of Law</option><option value="French Studies">French Studies</option><option value="North American Studies">North American Studies</option><option value="Latin American Studies">Latin American Studies</option><option value="Asian and Japanese Studies">Asian and Japanese Studies</option><option value="Interdisciplinary Language Sciences">Interdisciplinary Language Sciences</option><option value="International Relations">International Relations</option><option value="European Studies Program">European Studies Program</option><option value="Japan in East Asia">Japan in East Asia</option><option value="Russian and East European Studies">Russian and East European Studies</option><option value="Korean Studies">Korean Studies</option><option value="Culture and Representation">Culture and Representation</option><option value="British Studies">British Studies</option><option value="German Studies">German Studies</option><option value="Italian / Mediterranean Studies">Italian / Mediterranean Studies</option><option value="Informatics">Informatics</option><option value="General System">General System</option><option value="Science Interpreter Training Program">Science Interpreter Training Program</option><option value="Integrated Human Sciences Program for Cultural Diversity">Integrated Human Sciences Program for Cultural Diversity</option><option value="Center for Global Education">Center for Global Education</option><option value="Comparative Literature and Arts">Comparative Literature and Arts</option><option value="Contemporary Thought and Philosophy">Contemporary Thought and Philosophy</option><option value="Interdisciplinary Japanese Cultural Studies">Interdisciplinary Japanese Cultural Studies</option><option value="Studies on Language, Text and Culture">Studies on Language, Text and Culture</option><option value="Science and Technology Studies">Science and Technology Studies</option><option value="Mathematical Sciences">Mathematical Sciences</option><option value="Cognitive and Behavioral Sciences">Cognitive and Behavioral Sciences</option><option value="Sports Sciences">Sports Sciences</option><option value="Doctoral Program">Doctoral Program</option><option value="Interdisciplinary Social Sciences">Interdisciplinary Social Sciences</option><option value="Japan-German Graduate Externship">Japan-German Graduate Externship</option><option value="英語教育プログラム"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">English Education</font></font><ruby>プログラム<rt class="katakana-terminator-rt" data-rt="program"></rt></ruby></option><option value="Graduate School of Education">Graduate School of Education</option></select>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-flex">
+                            <button class="btn filter-btn w-100 me-2" id="filter-btn">
+                                <i class="bi bi-funnel me-2"></i><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">search
+                            </font></font></button>
+                            <div class="form-check form-switch d-flex align-items-center">
+                                <input class="form-check-input" type="checkbox" id="semantic-search-toggle">
+                                <label class="form-check-label ms-2" for="semantic-search-toggle"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Semantic Search</font></font></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 浏览器兼容性提示 -->
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <div class="alert alert-warning py-2 mb-0" role="alert">
+                            <small>
+                                <i class="bi bi-exclamation-triangle-fill me-1"></i><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                Please use the Chrome browser on your computer to access the semantic search function. Mobile or other browsers may kill the page due to excessive resource usage.
+                                 </font></font><span class="text-muted fst-italic"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">I will do a backend when I have money and time</font></font></span>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 课程列表 -->
+        <section id="courses">
+            <h2 class="mb-4"><i class="bi bi-journal-text me-2"></i><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Course List</font></font></h2>
+            
+            <!-- 加载动画 -->
+            <div id="loading" class="loading" style="display: none;">
+                <div class="search-loading-container">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">loading...</font></font></span>
+                    </div>
+                    <div id="search-loading-text" class="search-loading-text"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Searching for courses...</font></font></div>
+                    <div id="search-loading-subtext" class="search-loading-subtext"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                        When you use semantic search for the first time, you need to load and process vector data, which may take tens of seconds to several minutes. Subsequent searches will be faster.
+                    </font></font></div>
+                </div>
+            </div>
+            
+            <!-- 课程卡片容器 -->
+            <div class="row" id="courses-container"><div class="col-md-6 col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Tutorial in  Basic Theories of Education</font></font></h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <span class="badge badge-term"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Year-long</font></font></span>
+                                <span class="badge badge-level"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Undergraduate (Senior Div.)</font></font></span>
+                                <span class="badge badge-schedule"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Mon1</font></font></span>
+                                
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-person-badge"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Teacher:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> KATAYAMA Katsushige
+                            </font></font></div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-code-square"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Course Code:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> 09251501
+                            </font></font></div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-building"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Department:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Basic Theories of Education
+                            </font></font></div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-mortarboard"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Major:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Unspecified
+                            </font></font></div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-geo-alt"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Location:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Unspecified
+                            </font></font></div>
+                        </div>
+                    </div>
+                </div><div class="col-md-6 col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Tutorial in Sociology of Education, Comparative Education and  Higher Education</font></font></h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <span class="badge badge-term"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Year-long</font></font></span>
+                                <span class="badge badge-level"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Undergraduate (Senior Div.)</font></font></span>
+                                <span class="badge badge-schedule"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Mon1</font></font></span>
+                                
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-person-badge"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Teacher:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Yuki Honda
+                            </font></font></div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-code-square"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Course Code:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> 09253501
+                            </font></font></div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-building"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">院系:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Division of Social Sciences in Education
+                            </font></font></div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-mortarboard"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Major:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Unspecified
+                            </font></font></div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-geo-alt"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Location:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Unspecified
+                            </font></font></div>
+                        </div>
+                    </div>
+                </div><div class="col-md-6 col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Dissertation Research in Philosophy of Education</font></font></h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <span class="badge badge-term"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Year-long</font></font></span>
+                                <span class="badge badge-level"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Graduate</font></font></span>
+                                <span class="badge badge-schedule"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Mon1</font></font></span>
+                                
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-person-badge"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Teacher:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Jun Yamana
+                            </font></font></div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-code-square"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Course Code:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> 23-211-16
+                            </font></font></div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-building"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Graduate School:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Basic Education Course
+                            </font></font><ruby>コース<rt class="katakana-terminator-rt" data-rt="course"></rt></ruby>
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-mortarboard"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Specialization:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Basic Education Basic Education Course
+                            </font></font><ruby>コース<rt class="katakana-terminator-rt" data-rt="course"></rt></ruby>
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-geo-alt"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Location:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Hongo Campus (Other) Research Lab
+                            </font></font></div>
+                        </div>
+                    </div>
+                </div><div class="col-md-6 col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Dissertation Research in Ethics of Education</font></font></h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <span class="badge badge-term"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Year-long</font></font></span>
+                                <span class="badge badge-level"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Graduate</font></font></span>
+                                <span class="badge badge-schedule"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Mon1</font></font></span>
+                                
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-person-badge"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Teacher:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Akira Hiraishi
+                            </font></font></div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-code-square"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Course Code:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> 23-211-18
+                            </font></font></div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-building"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Graduate School:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Basic Education Course
+                            </font></font><ruby>コース<rt class="katakana-terminator-rt" data-rt="course"></rt></ruby>
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-mortarboard"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Specialization:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Basic Education Basic Education Course
+                            </font></font><ruby>コース<rt class="katakana-terminator-rt" data-rt="course"></rt></ruby>
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-geo-alt"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Location:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Hongo Campus (Other) Research Lab
+                            </font></font></div>
+                        </div>
+                    </div>
+                </div><div class="col-md-6 col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Dissertation Research in Educational Thought</font></font></h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <span class="badge badge-term"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Year-long</font></font></span>
+                                <span class="badge badge-level"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Graduate</font></font></span>
+                                <span class="badge badge-schedule"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Mon1</font></font></span>
+                                
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-person-badge"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Teacher:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> KODAMA Shigeo
+                            </font></font></div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-code-square"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Course Code:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> 23-211-20
+                            </font></font></div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-building"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Graduate School:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Basic Education Course
+                            </font></font><ruby>コース<rt class="katakana-terminator-rt" data-rt="course"></rt></ruby>
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-mortarboard"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Specialization:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Basic Education Basic Education Course
+                            </font></font><ruby>コース<rt class="katakana-terminator-rt" data-rt="course"></rt></ruby>
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-geo-alt"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Location:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Hongo Campus (Other) Research Lab
+                            </font></font></div>
+                        </div>
+                    </div>
+                </div><div class="col-md-6 col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Dissertation Research in Educational Anthropology</font></font></h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <span class="badge badge-term"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Year-long</font></font></span>
+                                <span class="badge badge-level"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Graduate</font></font></span>
+                                <span class="badge badge-schedule"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Mon1</font></font></span>
+                                
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-person-badge"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Teacher:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> KATAYAMA Katsushige
+                            </font></font></div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-code-square"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Course Code:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> 23-211-22
+                            </font></font></div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-building"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Graduate School:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Basic Education Course
+                            </font></font><ruby>コース<rt class="katakana-terminator-rt" data-rt="course"></rt></ruby>
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-mortarboard"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Specialization:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Basic Education Basic Education Course
+                            </font></font><ruby>コース<rt class="katakana-terminator-rt" data-rt="course"></rt></ruby>
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-geo-alt"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Location:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Hongo Campus (Other) Research Lab
+                            </font></font></div>
+                        </div>
+                    </div>
+                </div><div class="col-md-6 col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Dissertation Research in Japanese Educational History</font></font></h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <span class="badge badge-term"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Year-long</font></font></span>
+                                <span class="badge badge-level"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Graduate</font></font></span>
+                                <span class="badge badge-schedule"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Mon1</font></font></span>
+                                
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-person-badge"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Teacher:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> KOKUNI Yoshihiro
+                            </font></font></div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-code-square"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Course Code:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> 23-211-24
+                            </font></font></div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-building"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Graduate School:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Basic Education Course
+                            </font></font><ruby>コース<rt class="katakana-terminator-rt" data-rt="course"></rt></ruby>
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-mortarboard"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Specialization:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Basic Education Basic Education Course
+                            </font></font><ruby>コース<rt class="katakana-terminator-rt" data-rt="course"></rt></ruby>
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-geo-alt"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Location:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Hongo Campus (Other) Research Lab
+                            </font></font></div>
+                        </div>
+                    </div>
+                </div><div class="col-md-6 col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Dissertation Research in Western Educational History</font></font></h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <span class="badge badge-term"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Year-long</font></font></span>
+                                <span class="badge badge-level"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Graduate</font></font></span>
+                                <span class="badge badge-schedule"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Mon1</font></font></span>
+                                
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-person-badge"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Teacher:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> OKI Sayaka
+                            </font></font></div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-code-square"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Course Code:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> 23-211-26
+                            </font></font></div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-building"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Graduate School:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Basic Education Course
+                            </font></font><ruby>コース<rt class="katakana-terminator-rt" data-rt="course"></rt></ruby>
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-mortarboard"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Specialization:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Basic Education Basic Education Course
+                            </font></font><ruby>コース<rt class="katakana-terminator-rt" data-rt="course"></rt></ruby>
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-geo-alt"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Location:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Hongo Campus (Other) Research Lab
+                            </font></font></div>
+                        </div>
+                    </div>
+                </div><div class="col-md-6 col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Dissertation Research in Clinical Approach to Education</font></font></h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <span class="badge badge-term"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Year-long</font></font></span>
+                                <span class="badge badge-level"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Graduate</font></font></span>
+                                <span class="badge badge-schedule"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Mon1</font></font></span>
+                                
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-person-badge"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Teacher:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> TANAKA Satoshi
+                            </font></font></div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-code-square"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Course Code:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> 23-211-28
+                            </font></font></div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-building"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Graduate School:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Basic Education Course
+                            </font></font><ruby>コース<rt class="katakana-terminator-rt" data-rt="course"></rt></ruby>
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-mortarboard"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Specialization:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Basic Education Basic Education Course
+                            </font></font><ruby>コース<rt class="katakana-terminator-rt" data-rt="course"></rt></ruby>
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-geo-alt"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Location:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Hongo Campus (Other) Research Lab
+                            </font></font></div>
+                        </div>
+                    </div>
+                </div><div class="col-md-6 col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Dissertation Research in Clinical Phenomenology</font></font></h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <span class="badge badge-term"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Year-long</font></font></span>
+                                <span class="badge badge-level"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Graduate</font></font></span>
+                                <span class="badge badge-schedule"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Mon1</font></font></span>
+                                
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-person-badge"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Instructor:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> 大塚　類
+                            </font></font></div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-code-square"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Course Code:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> 23-211-30
+                            </font></font></div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-building"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Graduate School:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Basic Education Course
+                            </font></font><ruby>コース<rt class="katakana-terminator-rt" data-rt="course"></rt></ruby>
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-mortarboard"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Specialization:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Basic Education Basic Education Course
+                            </font></font><ruby>コース<rt class="katakana-terminator-rt" data-rt="course"></rt></ruby>
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-geo-alt"></i>
+                                <strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Location:</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Hongo Campus (Other) Research Lab
+                            </font></font></div>
+                        </div>
+                    </div>
+                </div></div>
+            
+            <!-- 分页 -->
+            <nav aria-label="Page navigation">
+                <ul class="pagination" id="pagination"><li class="page-item disabled">
+                <a class="page-link" href="#" aria-label="Previous">
+                    <span aria-hidden="true">«</span>
+                </a>
+            </li><li class="page-item active">
+                    <a class="page-link" href="#" onclick="displayCourses(1); return false;">1</a>
+                </li><li class="page-item ">
+                    <a class="page-link" href="#" onclick="displayCourses(2); return false;">2</a>
+                </li><li class="page-item ">
+                    <a class="page-link" href="#" onclick="displayCourses(3); return false;">3</a>
+                </li><li class="page-item ">
+                    <a class="page-link" href="#" onclick="displayCourses(4); return false;">4</a>
+                </li><li class="page-item ">
+                    <a class="page-link" href="#" onclick="displayCourses(5); return false;">5</a>
+                </li><li class="page-item ">
+                <a class="page-link" href="#" aria-label="Next" onclick="displayCourses(2); return false;">
+                    <span aria-hidden="true">»</span>
+                </a>
+            </li><li class="page-item ms-2 d-flex align-items-center pagination-input-container">
+                <div class="pagination-input-group">
+                    <span class="me-2 d-none d-sm-inline">跳转到</span>
+                    <input type="number" id="page-input" class="form-control form-control-sm" style="width: 60px;" min="1" max="289" value="1">
+                    <span class="mx-2 d-none d-sm-inline">页</span>
+                    <button class="btn btn-sm filter-btn" id="go-to-page-btn">跳转</button>
+                </div>
+            </li></ul>
+            </nav>
+        </section>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="text-center">
+        <div class="container">
+            <p><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">© 2024 Tokyo University Course Browser | Data from Tokyo University official website</font></font></p>
+        </div>
+    </footer>
+
+    <!-- 模型加载进度条 -->
+    <div id="model-loading-container" class="model-loading-container" style="display: none;">
+        <div class="model-loading-card">
+            <div class="model-loading-title"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Loading semantic search model</font></font></div>
+            <div class="progress model-loading-progress">
+                <div id="model-loading-progress-bar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <p id="model-loading-status" class="model-loading-status"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Getting ready...</font></font></p>
+            <div class="text-end mt-3">
+                <button id="cancel-model-loading" class="btn btn-sm btn-outline-secondary"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Cancel</font></font></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder"></script>
+    <script>
+        // 全局变量
+        let allCourses = [];
+        let uniqueCourses = [];
+        let filteredCourses = [];
+        let currentPage = 1;
+        let coursesPerPage = -1;
+        let useModel = null;
+        let courseVectors = {};
+        let isModelLoading = false;
+        let isModelLoaded = false;
+        
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // 检测浏览器类型
+                checkBrowser();
+                
+                // 加载课程数据
+                await loadCourseData();
+                
+                // 初始化过滤器
+                initializeFilters();
+                
+                // 显示第一页课程
+                displayCourses(1);
+                
+                // 设置事件监听器
+                document.getElementById('filter-btn').addEventListener('click', function() {
+                    applyFilters();
+                });
+                
+                document.getElementById('search-input').addEventListener('keyup', function(event) {
+                    if (event.key === 'Enter') {
+                        applyFilters();
+                    }
+                });
+                
+                // 添加每页显示数量选择器的事件监听器
+                document.getElementById('page-size-selector').addEventListener('change', function() {
+                    const newPageSize = parseInt(this.value);
+                    if (newPageSize !== coursesPerPage) {
+                        coursesPerPage = newPageSize;
+                        currentPage = 1; // 重置到第一页
+                        displayCourses(1);
+                    }
+                });
+                
+                // 添加语义搜索切换按钮的事件监听器
+                document.getElementById('semantic-search-toggle').addEventListener('change', function() {
+                    if (this.checked && !isModelLoaded && !isModelLoading) {
+                        // 当用户首次启用语义搜索时，加载模型
+                        loadModel().then(() => {
+                            // 如果有搜索词，重新应用过滤器
+                            const searchTerm = document.getElementById('search-input').value.trim();
+                            if (searchTerm) {
+                                applyFilters();
+                            }
+                        });
+                    }
+                });
+            } catch (error) {
+                console.error('加载数据时出错:', error);
+                document.getElementById('loading').innerHTML = `
+                    <div class="alert alert-danger" role="alert">
+                        加载数据时出错: ${error.message}
+                    </div>
+                `;
+            }
+        });
+        
+        // 检测浏览器类型
+        function checkBrowser() {
+            const isChrome = /Chrome/.test(navigator.userAgent) && !/Edg/.test(navigator.userAgent) && !/OPR/.test(navigator.userAgent);
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            const warningAlert = document.querySelector('.alert-warning');
+            const semanticToggle = document.getElementById('semantic-search-toggle');
+            
+            if (isMobile) {
+                // 移动设备，显示更明显的警告，但不禁用功能
+                warningAlert.classList.remove('py-2', 'mb-0');
+                warningAlert.classList.add('py-3', 'mb-3');
+                warningAlert.innerHTML = `
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>注意：</strong> 检测到您正在使用移动设备访问。
+                    语义搜索功能可能会占用大量资源并导致页面卡顿或崩溃。
+                    <div class="mt-1">如遇问题，请使用电脑端Chrome浏览器访问。</div>
+                    <div class="mt-1 fst-italic text-muted">等我有钱有时间了就来做个后端.jpg</div>
+                `;
+            } else if (!isChrome) {
+                // 非Chrome浏览器但是电脑端，显示轻提示
+                warningAlert.innerHTML = `
+                    <small>
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                        推荐使用Chrome浏览器以获得最佳语义搜索体验，其他浏览器可能性能较差。
+                        <span class="text-muted fst-italic">等我有钱有时间了就来做个后端.jpg</span>
+                    </small>
+                `;
+            }
+            // 如果是电脑端Chrome浏览器，保持原始提示
+        }
+        
+        // 加载课程数据
+        async function loadCourseData() {
+            try {
+                // 加载所有课程
+                const allCoursesResponse = await fetch('all_courses.json');
+                allCourses = await allCoursesResponse.json();
+                
+                // 加载去重后的课程
+                const uniqueCoursesResponse = await fetch('unique_courses.json');
+                uniqueCourses = await uniqueCoursesResponse.json();
+                
+                // 初始显示去重后的课程
+                filteredCourses = [...uniqueCourses];
+                
+                // 更新统计信息
+                document.getElementById('total-courses').textContent = allCourses.length;
+                document.getElementById('unique-courses').textContent = uniqueCourses.length;
+                
+                // 计算院系数量
+                const departments = new Set();
+                uniqueCourses.forEach(course => {
+                    if (course.department) {
+                        departments.add(course.department);
+                    }
+                });
+                document.getElementById('departments-count').textContent = departments.size;
+                
+                // 隐藏加载动画
+                document.getElementById('loading').style.display = 'none';
+            } catch (error) {
+                throw new Error(`无法加载课程数据: ${error.message}`);
+            }
+        }
+        
+        // 初始化过滤器
+        function initializeFilters() {
+            // 学期过滤器
+            const termFilter = document.getElementById('term-filter');
+            const terms = new Set();
+            uniqueCourses.forEach(course => {
+                if (course.term) {
+                    terms.add(course.term);
+                }
+            });
+            
+            terms.forEach(term => {
+                const option = document.createElement('option');
+                option.value = term;
+                option.textContent = term;
+                termFilter.appendChild(option);
+            });
+            
+            // 级别过滤器
+            const levelFilter = document.getElementById('level-filter');
+            const levels = new Set();
+            uniqueCourses.forEach(course => {
+                if (course.level) {
+                    levels.add(course.level);
+                }
+            });
+            
+            levels.forEach(level => {
+                const option = document.createElement('option');
+                option.value = level;
+                option.textContent = level;
+                levelFilter.appendChild(option);
+            });
+            
+            // 院系过滤器
+            const departmentFilter = document.getElementById('department-filter');
+            const departments = new Set();
+            uniqueCourses.forEach(course => {
+                if (course.department) {
+                    departments.add(course.department);
+                }
+            });
+            
+            departments.forEach(department => {
+                const option = document.createElement('option');
+                option.value = department;
+                option.textContent = department;
+                departmentFilter.appendChild(option);
+            });
+        }
+        
+        // 应用过滤器
+        async function applyFilters() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const termFilter = document.getElementById('term-filter').value;
+            const levelFilter = document.getElementById('level-filter').value;
+            const departmentFilter = document.getElementById('department-filter').value;
+            const useSemanticSearch = document.getElementById('semantic-search-toggle').checked;
+            
+            // 显示加载指示器
+            document.getElementById('loading').style.display = 'flex';
+            
+            // 更新加载文本
+            const loadingText = document.getElementById('search-loading-text');
+            const loadingSubtext = document.getElementById('search-loading-subtext');
+            
+            if (useSemanticSearch) {
+                loadingText.textContent = '正在进行语义搜索...';
+                loadingSubtext.style.display = 'block';
+                
+                if (!isModelLoaded) {
+                    loadingText.textContent = '正在准备语义搜索模型...';
+                }
+            } else {
+                loadingText.textContent = '正在搜索课程...';
+                loadingSubtext.style.display = 'none';
+            }
+            
+            try {
+                // 先应用非搜索词的过滤条件
+                let tempFilteredCourses = uniqueCourses.filter(course => {
+                    // 学期过滤
+                    const matchesTerm = !termFilter || course.term === termFilter;
+                    
+                    // 级别过滤
+                    const matchesLevel = !levelFilter || course.level === levelFilter;
+                    
+                    // 院系过滤
+                    const matchesDepartment = !departmentFilter || course.department === departmentFilter;
+                    
+                    return matchesTerm && matchesLevel && matchesDepartment;
+                });
+                
+                // 如果没有搜索词，直接返回过滤结果
+                if (!searchTerm) {
+                    filteredCourses = tempFilteredCourses;
+                    currentPage = 1;
+                    displayCourses(currentPage);
+                    return;
+                }
+                
+                // 根据搜索类型应用搜索
+                if (useSemanticSearch) {
+                    // 如果模型未加载，先加载模型
+                    if (!isModelLoaded && !isModelLoading) {
+                        await loadModel();
+                    }
+                    
+                    // 如果模型加载成功，应用语义搜索
+                    if (isModelLoaded) {
+                        // 更新加载文本
+                        loadingText.textContent = '正在计算语义相似度...';
+                        
+                        // 等待一小段时间，让UI更新
+                        await new Promise(resolve => setTimeout(resolve, 50));
+                        
+                        filteredCourses = await semanticSearch(searchTerm, tempFilteredCourses);
+                    } else {
+                        // 如果模型加载失败，回退到关键词搜索
+                        loadingText.textContent = '语义搜索模型加载失败，使用关键词搜索...';
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        
+                        filteredCourses = tempFilteredCourses.filter(course => {
+                            return (course.courseName && course.courseName.toLowerCase().includes(searchTerm)) ||
+                                (course.instructor && course.instructor.toLowerCase().includes(searchTerm)) ||
+                                (course.courseCode && course.courseCode.toLowerCase().includes(searchTerm));
+                        });
+                    }
+                } else {
+                    // 使用关键词搜索
+                    filteredCourses = tempFilteredCourses.filter(course => {
+                        return (course.courseName && course.courseName.toLowerCase().includes(searchTerm)) ||
+                            (course.instructor && course.instructor.toLowerCase().includes(searchTerm)) ||
+                            (course.courseCode && course.courseCode.toLowerCase().includes(searchTerm));
+                    });
+                }
+                
+                // 重置到第一页并显示结果
+                currentPage = 1;
+                displayCourses(currentPage);
+            } finally {
+                // 隐藏加载指示器
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+        
+        // 显示课程
+        function displayCourses(page) {
+            const coursesContainer = document.getElementById('courses-container');
+            coursesContainer.innerHTML = '';
+            
+            // 计算当前页的课程
+            let currentCourses;
+            
+            if (coursesPerPage === -1) {
+                // 显示全部课程
+                currentCourses = filteredCourses;
+            } else {
+                // 分页显示
+                const startIndex = (page - 1) * coursesPerPage;
+                const endIndex = Math.min(startIndex + coursesPerPage, filteredCourses.length);
+                currentCourses = filteredCourses.slice(startIndex, endIndex);
+            }
+            
+            if (currentCourses.length === 0) {
+                coursesContainer.innerHTML = `
+                    <div class="col-12">
+                        <div class="alert alert-info" role="alert">
+                            没有找到匹配的课程。请尝试不同的搜索条件，或考虑启用语义搜索功能。
+                        </div>
+                    </div>
+                `;
+                document.getElementById('pagination').innerHTML = '';
+                return;
+            }
+            
+            // 创建课程卡片
+            currentCourses.forEach(course => {
+                const courseCard = document.createElement('div');
+                courseCard.className = 'col-md-6 col-lg-6';
+                
+                // 检查是否有语义相似度信息
+                const hasSimilarity = course.semanticSimilarity !== undefined;
+                const similarityBadge = hasSimilarity ? 
+                    `<span class="badge bg-info ms-2">相似度: ${(course.semanticSimilarity * 100).toFixed(1)}%</span>` : '';
+                
+                courseCard.innerHTML = `
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">${course.courseName || '未知课程'}</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                ${course.term ? `<span class="badge badge-term">${course.term}</span>` : ''}
+                                ${course.level ? `<span class="badge badge-level">${course.level}</span>` : ''}
+                                ${course.schedule ? `<span class="badge badge-schedule">${course.schedule}</span>` : ''}
+                                ${similarityBadge}
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-person-badge"></i>
+                                <strong>Instructor:</strong> ${course.instructor || '未指定'}
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-code-square"></i>
+                                <strong>Course Code:</strong> ${course.courseCode || '未指定'}
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-building"></i>
+                                <strong>Offered By:</strong> ${course.department || '未指定'}
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-mortarboard"></i>
+                                <strong>Category:</strong> ${course.major || '未指定'}
+                            </div>
+                            
+                            <div class="course-info">
+                                <i class="bi bi-geo-alt"></i>
+                                <strong>Venue:</strong> ${course.location || '未指定'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                coursesContainer.appendChild(courseCard);
+            });
+            
+            // 更新分页
+            updatePagination(page);
+        }
+        
+        // 更新分页
+        function updatePagination(currentPage) {
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+            
+            // 如果显示全部，不显示分页
+            if (coursesPerPage === -1) {
+                pagination.innerHTML = `
+                    <div class="text-center mt-3">
+                        <span class="text-muted">找不到更多课程？试试在搜索框启用语义搜索！</span>
+                        <span class="text-muted">这可以按照实际语义来模糊搜索某一个方向的所有课程</span>
+                    </div>
+
+                `;
+                return;
+            }
+            
+            const totalPages = Math.ceil(filteredCourses.length / coursesPerPage);
+            
+            // 如果只有一页，不显示分页
+            if (totalPages <= 1) {
+                return;
+            }
+            
+            // 上一页按钮
+            const prevItem = document.createElement('li');
+            prevItem.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevItem.innerHTML = `
+                <a class="page-link" href="#" aria-label="Previous" ${currentPage > 1 ? `onclick="displayCourses(${currentPage - 1}); return false;"` : ''}>
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            `;
+            pagination.appendChild(prevItem);
+            
+            // 页码按钮
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+            
+            if (endPage - startPage + 1 < maxVisiblePages) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const pageItem = document.createElement('li');
+                pageItem.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                pageItem.innerHTML = `
+                    <a class="page-link" href="#" onclick="displayCourses(${i}); return false;">${i}</a>
+                `;
+                pagination.appendChild(pageItem);
+            }
+            
+            // 下一页按钮
+            const nextItem = document.createElement('li');
+            nextItem.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextItem.innerHTML = `
+                <a class="page-link" href="#" aria-label="Next" ${currentPage < totalPages ? `onclick="displayCourses(${currentPage + 1}); return false;"` : ''}>
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            `;
+            pagination.appendChild(nextItem);
+            
+            // 添加页码输入框和跳转按钮
+            const pageInputItem = document.createElement('li');
+            pageInputItem.className = 'page-item ms-2 d-flex align-items-center pagination-input-container';
+            pageInputItem.innerHTML = `
+                <div class="pagination-input-group">
+                    <span class="me-2 d-none d-sm-inline">跳转到</span>
+                    <input type="number" id="page-input" class="form-control form-control-sm" style="width: 60px;" min="1" max="${totalPages}" value="${currentPage}">
+                    <span class="mx-2 d-none d-sm-inline">页</span>
+                    <button class="btn btn-sm filter-btn" id="go-to-page-btn">跳转</button>
+                </div>
+            `;
+            pagination.appendChild(pageInputItem);
+            
+            // 添加跳转按钮的事件监听器
+            setTimeout(() => {
+                document.getElementById('go-to-page-btn').addEventListener('click', goToPage);
+                document.getElementById('page-input').addEventListener('keyup', function(event) {
+                    if (event.key === 'Enter') {
+                        goToPage();
+                    }
+                });
+            }, 0);
+        }
+        
+        // 跳转到指定页码
+        function goToPage() {
+            const pageInput = document.getElementById('page-input');
+            let pageNumber = parseInt(pageInput.value);
+            const totalPages = Math.ceil(filteredCourses.length / coursesPerPage);
+            
+            // 验证页码是否有效
+            if (isNaN(pageNumber) || pageNumber < 1) {
+                pageNumber = 1;
+            } else if (pageNumber > totalPages) {
+                pageNumber = totalPages;
+            }
+            
+            // 更新输入框的值
+            pageInput.value = pageNumber;
+            
+            // 显示指定页码的课程
+            displayCourses(pageNumber);
+        }
+        
+        // 加载语义搜索模型
+        async function loadModel() {
+            if (isModelLoaded || isModelLoading) return;
+            
+            // 用于控制是否取消加载
+            let isCancelled = false;
+            
+            try {
+                isModelLoading = true;
+                
+                // 显示加载提示
+                const searchToggle = document.getElementById('semantic-search-toggle');
+                const originalLabel = searchToggle.nextElementSibling.textContent;
+                searchToggle.nextElementSibling.textContent = '加载模型中...';
+                searchToggle.disabled = true;
+                
+                // 显示进度条
+                const loadingContainer = document.getElementById('model-loading-container');
+                const progressBar = document.getElementById('model-loading-progress-bar');
+                const statusText = document.getElementById('model-loading-status');
+                const cancelButton = document.getElementById('cancel-model-loading');
+                
+                loadingContainer.style.display = 'flex';
+                progressBar.style.width = '0%';
+                progressBar.setAttribute('aria-valuenow', '0');
+                statusText.textContent = '正在下载模型...';
+                
+                // 添加取消按钮事件
+                cancelButton.addEventListener('click', function() {
+                    isCancelled = true;
+                    loadingContainer.style.display = 'none';
+                    
+                    // 重置UI
+                    searchToggle.checked = false;
+                    searchToggle.nextElementSibling.textContent = originalLabel;
+                    searchToggle.disabled = false;
+                    isModelLoading = false;
+                });
+                
+                // 模拟进度更新
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    // 如果已取消，清除定时器
+                    if (isCancelled) {
+                        clearInterval(progressInterval);
+                        return;
+                    }
+                    
+                    // 模拟下载进度，实际上TensorFlow.js没有提供进度回调
+                    // 所以我们使用一个非线性函数来模拟进度，让它看起来更真实
+                    if (progress < 90) {
+                        if (progress < 30) {
+                            progress += 1;
+                        } else if (progress < 60) {
+                            progress += 0.7;
+                        } else {
+                            progress += 0.3;
+                        }
+                        
+                        progressBar.style.width = `${progress}%`;
+                        progressBar.setAttribute('aria-valuenow', progress.toString());
+                        
+                        // 更新状态文本
+                        if (progress < 30) {
+                            statusText.textContent = '正在下载模型...';
+                        } else if (progress < 60) {
+                            statusText.textContent = '正在加载模型...';
+                        } else {
+                            statusText.textContent = '正在初始化模型...';
+                        }
+                    }
+                }, 100);
+                
+                // 加载模型
+                useModel = await use.load();
+                
+                // 如果在加载过程中取消了，则不继续处理
+                if (isCancelled) {
+                    return;
+                }
+                
+                isModelLoaded = true;
+                
+                // 完成进度
+                clearInterval(progressInterval);
+                progressBar.style.width = '100%';
+                progressBar.setAttribute('aria-valuenow', '100');
+                statusText.textContent = '模型加载完成！';
+                
+                // 短暂显示完成状态后隐藏进度条
+                setTimeout(() => {
+                    if (!isCancelled) {
+                        loadingContainer.style.display = 'none';
+                    }
+                }, 1000);
+                
+                // 恢复UI
+                searchToggle.nextElementSibling.textContent = originalLabel;
+                searchToggle.disabled = false;
+                
+                console.log('语义搜索模型加载完成');
+            } catch (error) {
+                console.error('加载语义搜索模型时出错:', error);
+                
+                // 如果已经取消，则不显示错误
+                if (isCancelled) {
+                    return;
+                }
+                
+                // 显示错误状态
+                const loadingContainer = document.getElementById('model-loading-container');
+                const statusText = document.getElementById('model-loading-status');
+                
+                if (loadingContainer.style.display !== 'none') {
+                    statusText.textContent = `加载失败: ${error.message}`;
+                    setTimeout(() => {
+                        loadingContainer.style.display = 'none';
+                    }, 2000);
+                }
+                
+                // 显示错误并重置UI
+                const searchToggle = document.getElementById('semantic-search-toggle');
+                searchToggle.checked = false;
+                searchToggle.nextElementSibling.textContent = '语义搜索 (加载失败)';
+                searchToggle.disabled = false;
+            } finally {
+                if (!isCancelled) {
+                    isModelLoading = false;
+                }
+            }
+        }
+        
+        // 计算余弦相似度
+        function cosineSimilarity(vecA, vecB) {
+            let dotProduct = 0;
+            let normA = 0;
+            let normB = 0;
+            
+            for (let i = 0; i < vecA.length; i++) {
+                dotProduct += vecA[i] * vecB[i];
+                normA += vecA[i] * vecA[i];
+                normB += vecB[i] * vecB[i];
+            }
+            
+            normA = Math.sqrt(normA);
+            normB = Math.sqrt(normB);
+            
+            if (normA === 0 || normB === 0) {
+                return 0;
+            }
+            
+            return dotProduct / (normA * normB);
+        }
+        
+        // 生成课程向量
+        async function generateCourseVectors(courses) {
+            if (!isModelLoaded || !useModel) return {};
+            
+            const courseNames = courses.map(course => course.courseName || '').filter(name => name !== '');
+            
+            if (courseNames.length === 0) return {};
+            
+            try {
+                // 更新加载文本
+                const loadingText = document.getElementById('search-loading-text');
+                const totalCourses = courseNames.length;
+                
+                loadingText.textContent = `正在准备处理 ${totalCourses} 门课程的向量...`;
+                await new Promise(resolve => setTimeout(resolve, 50)); // 让UI更新
+                
+                // 批量生成向量 - 为了避免内存问题，我们分批处理
+                const batchSize = 100; // 每批处理的课程数量
+                const result = {};
+                
+                for (let i = 0; i < courseNames.length; i += batchSize) {
+                    const batchEnd = Math.min(i + batchSize, courseNames.length);
+                    const currentBatch = courseNames.slice(i, batchEnd);
+                    
+                    loadingText.textContent = `正在处理课程向量 (${i + 1}-${batchEnd}/${totalCourses})...`;
+                    await new Promise(resolve => setTimeout(resolve, 50)); // 让UI更新
+                    
+                    const embeddings = await useModel.embed(currentBatch);
+                    const vectors = embeddings.arraySync();
+                    
+                    // 将向量与课程名称关联
+                    for (let j = 0; j < currentBatch.length; j++) {
+                        result[currentBatch[j]] = vectors[j];
+                    }
+                }
+                
+                loadingText.textContent = '课程向量处理完成，正在应用搜索...';
+                return result;
+            } catch (error) {
+                console.error('生成课程向量时出错:', error);
+                return {};
+            }
+        }
+        
+        // 语义搜索
+        async function semanticSearch(query, courses) {
+            if (!isModelLoaded || !useModel) return courses;
+            
+            try {
+                // 更新加载文本
+                const loadingText = document.getElementById('search-loading-text');
+                
+                // 生成查询向量
+                loadingText.textContent = '正在生成查询向量...';
+                await new Promise(resolve => setTimeout(resolve, 50)); // 让UI更新
+                
+                const queryEmbedding = await useModel.embed([query]);
+                const queryVector = queryEmbedding.arraySync()[0];
+                
+                // 如果课程向量为空，则生成
+                if (Object.keys(courseVectors).length === 0) {
+                    loadingText.textContent = '正在生成课程向量（初次使用可能需要较长时间）...';
+                    await new Promise(resolve => setTimeout(resolve, 50)); // 让UI更新
+                    
+                    courseVectors = await generateCourseVectors(courses);
+                }
+                
+                // 计算相似度并排序
+                loadingText.textContent = '正在计算相似度并排序结果...';
+                await new Promise(resolve => setTimeout(resolve, 50)); // 让UI更新
+                
+                const results = courses.map(course => {
+                    if (!course.courseName || !courseVectors[course.courseName]) {
+                        return { course, similarity: 0 };
+                    }
+                    
+                    const similarity = cosineSimilarity(queryVector, courseVectors[course.courseName]);
+                    return { course, similarity };
+                })
+                .filter(item => item.similarity > 0.3) // 设置相似度阈值
+                .sort((a, b) => b.similarity - a.similarity);
+                
+                // 将相似度信息添加到课程对象中
+                return results.map(item => {
+                    return {
+                        ...item.course,
+                        semanticSimilarity: item.similarity
+                    };
+                });
+            } catch (error) {
+                console.error('语义搜索时出错:', error);
+                return courses;
+            }
+        }
+    </script><div id="goog-gt-tt" class="VIpgJd-yAWNEb-L7lbkb skiptranslate" style="border-radius: 12px; margin: 0 0 0 -23px; padding: 0; font-family: 'Google Sans', Arial, sans-serif;" data-id=""><div id="goog-gt-vt" class="VIpgJd-yAWNEb-hvhgNd"><div class=" VIpgJd-yAWNEb-hvhgNd-l4eHX-i3jM8c"><img src="https://fonts.gstatic.com/s/i/productlogos/translate/v14/24px.svg" width="24" height="24" alt=""></div><div class=" VIpgJd-yAWNEb-hvhgNd-k77Iif-i3jM8c"><div class="VIpgJd-yAWNEb-hvhgNd-IuizWc" dir="ltr">Original text</div><div id="goog-gt-original-text" class="VIpgJd-yAWNEb-nVMfcd-fmcmS VIpgJd-yAWNEb-hvhgNd-axAV1"></div></div><div class="VIpgJd-yAWNEb-hvhgNd-N7Eqid ltr"><div class="VIpgJd-yAWNEb-hvhgNd-N7Eqid-B7I4Od ltr" dir="ltr"><div class="VIpgJd-yAWNEb-hvhgNd-UTujCb">Rate this translation</div><div class="VIpgJd-yAWNEb-hvhgNd-eO9mKe">Your feedback will be used to help improve Google Translate</div></div><div class="VIpgJd-yAWNEb-hvhgNd-xgov5 ltr"><button id="goog-gt-thumbUpButton" type="button" class="VIpgJd-yAWNEb-hvhgNd-bgm6sf" title="Good translation" aria-label="Good translation" aria-pressed="false"><span id="goog-gt-thumbUpIcon"><svg width="24" height="24" viewBox="0 0 24 24" focusable="false" class="VIpgJd-yAWNEb-hvhgNd-THI6Vb NMm5M"><path d="M21 7h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 0S7.08 6.85 7 7H2v13h16c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73V9c0-1.1-.9-2-2-2zM7 18H4V9h3v9zm14-7l-3 7H9V8l4.34-4.34L12 9h9v2z"></path></svg></span><span id="goog-gt-thumbUpIconFilled"><svg width="24" height="24" viewBox="0 0 24 24" focusable="false" class="VIpgJd-yAWNEb-hvhgNd-THI6Vb NMm5M"><path d="M21 7h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 0S7.08 6.85 7 7v13h11c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73V9c0-1.1-.9-2-2-2zM5 7H1v13h4V7z"></path></svg></span></button><button id="goog-gt-thumbDownButton" type="button" class="VIpgJd-yAWNEb-hvhgNd-bgm6sf" title="Poor translation" aria-label="Poor translation" aria-pressed="false"><span id="goog-gt-thumbDownIcon"><svg width="24" height="24" viewBox="0 0 24 24" focusable="false" class="VIpgJd-yAWNEb-hvhgNd-THI6Vb NMm5M"><path d="M3 17h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06L9.83 24s7.09-6.85 7.17-7h5V4H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v2c0 1.1.9 2 2 2zM17 6h3v9h-3V6zM3 13l3-7h9v10l-4.34 4.34L12 15H3v-2z"></path></svg></span><span id="goog-gt-thumbDownIconFilled"><svg width="24" height="24" viewBox="0 0 24 24" focusable="false" class="VIpgJd-yAWNEb-hvhgNd-THI6Vb NMm5M"><path d="M3 17h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06L9.83 24s7.09-6.85 7.17-7V4H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v2c0 1.1.9 2 2 2zm16 0h4V4h-4v13z"></path></svg></span></button></div></div><div id="goog-gt-votingHiddenPane" class="VIpgJd-yAWNEb-hvhgNd-aXYTce"><form id="goog-gt-votingForm" action="//translate.googleapis.com/translate_voting?client=te_lib" method="post" target="votingFrame" class="VIpgJd-yAWNEb-hvhgNd-aXYTce"><input type="text" name="sl" id="goog-gt-votingInputSrcLang"><input type="text" name="tl" id="goog-gt-votingInputTrgLang"><input type="text" name="query" id="goog-gt-votingInputSrcText"><input type="text" name="gtrans" id="goog-gt-votingInputTrgText"><input type="text" name="vote" id="goog-gt-votingInputVote"></form><iframe name="votingFrame" frameborder="0"></iframe></div></div></div>
+
+ </body></html>
