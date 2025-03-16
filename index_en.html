@@ -1004,18 +1004,18 @@
                 warningAlert.classList.add('py-3', 'mb-3');
                 warningAlert.innerHTML = `
                     <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                    <strong>注意：</strong> 检测到您正在使用移动设备访问。
-                    语义搜索功能可能会占用大量资源并导致页面卡顿或崩溃。
-                    <div class="mt-1">如遇问题，请使用电脑端Chrome浏览器访问。</div>
-                    <div class="mt-1 fst-italic text-muted">等我有钱有时间了就来做个后端.jpg</div>
+                    <strong>Attension: </strong> Detected that you are accessing from a mobile device.
+                    Semantic search function may occupy a lot of resources and cause page lag or crash.
+                    <div class="mt-1">If you encounter any problems, please use the Chrome browser on your computer to access.</div>
+                    <div class="mt-1 fst-italic text-muted">I will do a backend when I have money and time.jpg</div>
                 `;
             } else if (!isChrome) {
                 // 非Chrome浏览器但是电脑端，显示轻提示
                 warningAlert.innerHTML = `
                     <small>
                         <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                        推荐使用Chrome浏览器以获得最佳语义搜索体验，其他浏览器可能性能较差。
-                        <span class="text-muted fst-italic">等我有钱有时间了就来做个后端.jpg</span>
+                        Recommend using Chrome browser to get the best semantic search experience, other browsers may perform poorly.
+                        <span class="text-muted fst-italic">I will do a backend when I have money and time.jpg</span>
                     </small>
                 `;
             }
