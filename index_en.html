@@ -421,6 +421,18 @@
                         </div>
                     </div>
                 </div>
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <div class="alert alert-warning py-2 mb-0" role="alert">
+                            <small>
+                                <i class="bi bi-exclamation-triangle-fill me-1"></i><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                This website contain only the course can be found in UTAS syllabus searching system.
+                                There are more courses can be found in UTOL and catalog.he.u-tokyo.ac.jp, not sure whether they will be posted to UTAS later.
+                                Make sure to check if the course you disired is open to USTEP student.
+                            </small>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -1212,7 +1224,7 @@
                 coursesContainer.innerHTML = `
                     <div class="col-12">
                         <div class="alert alert-info" role="alert">
-                            没有找到匹配的课程。请尝试不同的搜索条件，或考虑启用语义搜索功能。
+                            No matching courses found. Please try different search conditions, or consider enabling semantic search.
                         </div>
                     </div>
                 `;
@@ -1286,8 +1298,8 @@
             if (coursesPerPage === -1) {
                 pagination.innerHTML = `
                     <div class="text-center mt-3">
-                        <span class="text-muted">找不到更多课程？试试在搜索框启用语义搜索！</span>
-                        <span class="text-muted">这可以按照实际语义来模糊搜索某一个方向的所有课程</span>
+                        <span class="text-muted">Didn't find what you were looking for? Try semantic search!</span>
+                        <span class="text-muted">This allows you to search for all courses in a certain direction by using semantic search.</span>
                     </div>
 
                 `;
@@ -1396,7 +1408,7 @@
                 // 显示加载提示
                 const searchToggle = document.getElementById('semantic-search-toggle');
                 const originalLabel = searchToggle.nextElementSibling.textContent;
-                searchToggle.nextElementSibling.textContent = '加载模型中...';
+                searchToggle.nextElementSibling.textContent = 'Loading model...';
                 searchToggle.disabled = true;
                 
                 // 显示进度条
@@ -1408,7 +1420,7 @@
                 loadingContainer.style.display = 'flex';
                 progressBar.style.width = '0%';
                 progressBar.setAttribute('aria-valuenow', '0');
-                statusText.textContent = '正在下载模型...';
+                statusText.textContent = 'Downloading model...';
                 
                 // 添加取消按钮事件
                 cancelButton.addEventListener('click', function() {
@@ -1447,11 +1459,11 @@
                         
                         // 更新状态文本
                         if (progress < 30) {
-                            statusText.textContent = '正在下载模型...';
+                            statusText.textContent = 'Downloading model...';
                         } else if (progress < 60) {
-                            statusText.textContent = '正在加载模型...';
+                            statusText.textContent = 'Loading model...';
                         } else {
-                            statusText.textContent = '正在初始化模型...';
+                            statusText.textContent = 'Initializing model...';
                         }
                     }
                 }, 100);
@@ -1550,7 +1562,7 @@
                 const loadingText = document.getElementById('search-loading-text');
                 const totalCourses = courseNames.length;
                 
-                loadingText.textContent = `正在准备处理 ${totalCourses} 门课程的向量...`;
+                loadingText.textContent = `Preparing to process ${totalCourses} course vectors...`;
                 await new Promise(resolve => setTimeout(resolve, 50)); // 让UI更新
                 
                 // 批量生成向量 - 为了避免内存问题，我们分批处理
@@ -1561,7 +1573,7 @@
                     const batchEnd = Math.min(i + batchSize, courseNames.length);
                     const currentBatch = courseNames.slice(i, batchEnd);
                     
-                    loadingText.textContent = `正在处理课程向量 (${i + 1}-${batchEnd}/${totalCourses})...`;
+                    loadingText.textContent = `Processing course semantic vector (${i + 1}-${batchEnd}/${totalCourses})...`;
                     await new Promise(resolve => setTimeout(resolve, 50)); // 让UI更新
                     
                     const embeddings = await useModel.embed(currentBatch);
@@ -1573,7 +1585,7 @@
                     }
                 }
                 
-                loadingText.textContent = '课程向量处理完成，正在应用搜索...';
+                loadingText.textContent = 'Course vector processing completed, applying search...';
                 return result;
             } catch (error) {
                 console.error('生成课程向量时出错:', error);
@@ -1590,7 +1602,7 @@
                 const loadingText = document.getElementById('search-loading-text');
                 
                 // 生成查询向量
-                loadingText.textContent = '正在生成查询向量...';
+                loadingText.textContent = 'Generating query vector...';
                 await new Promise(resolve => setTimeout(resolve, 50)); // 让UI更新
                 
                 const queryEmbedding = await useModel.embed([query]);
@@ -1598,14 +1610,14 @@
                 
                 // 如果课程向量为空，则生成
                 if (Object.keys(courseVectors).length === 0) {
-                    loadingText.textContent = '正在生成课程向量（初次使用可能需要较长时间）...';
+                    loadingText.textContent = 'Generating course vectors (may take a while for the first time)...';
                     await new Promise(resolve => setTimeout(resolve, 50)); // 让UI更新
                     
                     courseVectors = await generateCourseVectors(courses);
                 }
                 
                 // 计算相似度并排序
-                loadingText.textContent = '正在计算相似度并排序结果...';
+                loadingText.textContent = 'Calculating similarity and sorting results...';
                 await new Promise(resolve => setTimeout(resolve, 50)); // 让UI更新
                 
                 const results = courses.map(course => {
