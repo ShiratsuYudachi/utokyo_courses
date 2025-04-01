@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  utokyo-courses:
+    build: .
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+    restart: unless-stopped
+    volumes:
+      - ./all_courses.json:/app/all_courses.json
+      - ./unique_courses.json:/app/unique_courses.json 
